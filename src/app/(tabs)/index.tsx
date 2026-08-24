@@ -1,6 +1,11 @@
 import { QuickAddButton } from '@/components/QuickAddButton';
+import {
+  addDrink as addDrinkToFirebase,
+  getDrinks,
+  removeDrink,
+} from '@/services/drinks';
 import { styles } from '@/styles/index.styles';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,35 +18,8 @@ type Drink = {
 
 const DAILY_GOAL = 2700;
 
-const INITIAL_DRINKS: Drink[] = [
-  {
-    id: '1',
-    time: '18:31',
-    name: 'Water',
-    amount: 500,
-  },
-  {
-    id: '2',
-    time: '15:42',
-    name: 'Water',
-    amount: 250,
-  },
-  {
-    id: '3',
-    time: '12:15',
-    name: 'Water',
-    amount: 500,
-  },
-  {
-    id: '4',
-    time: '09:20',
-    name: 'Water',
-    amount: 500,
-  },
-];
-
 export default function HomeScreen() {
-  const [drinks, setDrinks] = useState(INITIAL_DRINKS);
+  const [drinks, setDrinks] = useState<Drink[]>([]);
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
 
   const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
@@ -63,30 +41,69 @@ export default function HomeScreen() {
   const greeting =
     hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
-  const addDrink = (amount: number) => {
-    const now = new Date();
+  const loadDrinks = async () => {
+    try {
+      const firebaseDrinks = await getDrinks();
 
-    const time = now.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
+      const formattedDrinks = firebaseDrinks.map((drink) => ({
+        id: drink.id,
+        name: drink.name,
+        amount: drink.amount,
+        time: drink.createdAt
+          ? drink.createdAt.toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '--:--',
+      }));
 
-    const newDrink = {
-      id: Date.now().toString(),
-      time,
-      name: 'Water',
-      amount,
-    };
-
-    setDrinks((current) => [newDrink, ...current]);
+      setDrinks(formattedDrinks);
+    } catch (error) {
+      console.error('Could not load drinks:', error);
+    }
   };
 
-  const deleteDrink = (id: string) => {
-    setDrinks((current) => current.filter((drink) => drink.id !== id));
+  const handleAddDrink = async (amount: number) => {
+    try {
+      const id = await addDrinkToFirebase(amount);
 
-    setSelectedDrink(null);
+      const now = new Date();
+
+      const newDrink: Drink = {
+        id,
+        name: 'Water',
+        amount,
+        time: now.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      };
+
+      setDrinks((current) => [newDrink, ...current]);
+
+      console.log('Drink created', id);
+    } catch (error) {
+      console.error('Could not add drink:', error);
+    }
   };
+
+  const deleteDrink = async (id: string) => {
+    try {
+      await removeDrink(id);
+
+      setDrinks((current) => current.filter((drink) => drink.id !== id));
+
+      setSelectedDrink(null);
+
+      console.log('Drink successfully deleted:', id);
+    } catch (error) {
+      console.error('Could not delete drink:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadDrinks();
+  }, []);
 
   return (
     <SafeAreaView style={styles.screen} edges={[]}>
@@ -120,34 +137,47 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Quick Add</Text>
 
         <View style={styles.quickAddRow}>
-          <QuickAddButton amount={250} onPress={() => addDrink(250)} />
-          <QuickAddButton amount={500} onPress={() => addDrink(500)} />
+          <QuickAddButton amount={250} onPress={() => handleAddDrink(250)} />
+          <QuickAddButton amount={500} onPress={() => handleAddDrink(500)} />
         </View>
 
         {/* Today's drinks */}
         <Text style={styles.sectionTitle}>Today's drinks</Text>
 
-        <View style={styles.historyCard}>
-          {drinks.map((drink, index) => {
-            const isLast = index === drinks.length - 1;
+        {drinks.length === 0 ? (
+          <View style={styles.emptyHistoryCard}>
+            <Text style={styles.emptyHistoryTitle}>No drinks yet</Text>
 
-            return (
-              <Pressable
-                key={drink.id}
-                onPress={() => setSelectedDrink(drink)}
-                style={[styles.historyRow, !isLast && styles.historyRowBorder]}
-              >
-                <Text style={styles.historyTime}>{drink.time}</Text>
+            <Text style={styles.emptyHistoryText}>
+              Add your first drink of the day.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.historyCard}>
+            {drinks.map((drink, index) => {
+              const isLast = index === drinks.length - 1;
 
-                <View style={styles.historyDrink}>
-                  <Text style={styles.historyName}>{drink.name}</Text>
-                </View>
+              return (
+                <Pressable
+                  key={drink.id}
+                  onPress={() => setSelectedDrink(drink)}
+                  style={[
+                    styles.historyRow,
+                    !isLast && styles.historyRowBorder,
+                  ]}
+                >
+                  <Text style={styles.historyTime}>{drink.time}</Text>
 
-                <Text style={styles.historyAmount}>{drink.amount} ml</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                  <View style={styles.historyDrink}>
+                    <Text style={styles.historyName}>{drink.name}</Text>
+                  </View>
+
+                  <Text style={styles.historyAmount}>{drink.amount} ml</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
 
       {/* Modal */}

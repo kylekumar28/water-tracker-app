@@ -228,4 +228,23 @@ export const styles = StyleSheet.create({
   modalButtonPressed: {
     opacity: 0.75,
   },
+
+  emptyHistoryCard: {
+    backgroundColor: Colours.card,
+    borderRadius: 24,
+    paddingVertical: 32,
+    alignItems: 'center',
+  },
+
+  emptyHistoryTitle: {
+    color: Colours.text,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  emptyHistoryText: {
+    color: Colours.textSecondary,
+    fontSize: 15,
+    marginTop: 6,
+  },
 });
