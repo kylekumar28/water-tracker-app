@@ -1,12 +1,19 @@
 import { QuickAddButton } from '@/components/QuickAddButton';
 import { styles } from '@/styles/index.styles';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+type Drink = {
+  id: string;
+  time: string;
+  name: string;
+  amount: number;
+};
 
 const DAILY_GOAL = 2700;
 
-const INITIAL_DRINKS = [
+const INITIAL_DRINKS: Drink[] = [
   {
     id: '1',
     time: '18:31',
@@ -34,8 +41,10 @@ const INITIAL_DRINKS = [
 ];
 
 export default function HomeScreen() {
-  const [consumed, setConsumed] = useState(1750);
   const [drinks, setDrinks] = useState(INITIAL_DRINKS);
+  const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
+
+  const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
 
   const percentage = Math.min(Math.round((consumed / DAILY_GOAL) * 100), 100);
 
@@ -54,7 +63,7 @@ export default function HomeScreen() {
   const greeting =
     hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
-  const addWater = (amount: number) => {
+  const addDrink = (amount: number) => {
     const now = new Date();
 
     const time = now.toLocaleTimeString([], {
@@ -70,9 +79,13 @@ export default function HomeScreen() {
       amount,
     };
 
-    setConsumed((current) => current + amount);
-
     setDrinks((current) => [newDrink, ...current]);
+  };
+
+  const deleteDrink = (id: string) => {
+    setDrinks((current) => current.filter((drink) => drink.id !== id));
+
+    setSelectedDrink(null);
   };
 
   return (
@@ -107,8 +120,8 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Quick Add</Text>
 
         <View style={styles.quickAddRow}>
-          <QuickAddButton amount={250} onPress={() => addWater(250)} />
-          <QuickAddButton amount={500} onPress={() => addWater(500)} />
+          <QuickAddButton amount={250} onPress={() => addDrink(250)} />
+          <QuickAddButton amount={500} onPress={() => addDrink(500)} />
         </View>
 
         {/* Today's drinks */}
@@ -119,8 +132,9 @@ export default function HomeScreen() {
             const isLast = index === drinks.length - 1;
 
             return (
-              <View
+              <Pressable
                 key={drink.id}
+                onPress={() => setSelectedDrink(drink)}
                 style={[styles.historyRow, !isLast && styles.historyRowBorder]}
               >
                 <Text style={styles.historyTime}>{drink.time}</Text>
@@ -130,11 +144,56 @@ export default function HomeScreen() {
                 </View>
 
                 <Text style={styles.historyAmount}>{drink.amount} ml</Text>
-              </View>
+              </Pressable>
             );
           })}
         </View>
       </ScrollView>
+
+      {/* Modal */}
+      <Modal
+        visible={selectedDrink !== null}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setSelectedDrink(null)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setSelectedDrink(null)}
+        >
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            {selectedDrink && (
+              <>
+                <Text style={styles.modalTitle}>{selectedDrink.name}</Text>
+                <Text style={styles.modalAmount}>
+                  {selectedDrink.amount} ml
+                </Text>
+                <Text style={styles.modalTime}>{selectedDrink.time}</Text>
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalDeleteButton,
+                    pressed && styles.modalButtonPressed,
+                  ]}
+                  onPress={() => deleteDrink(selectedDrink.id)}
+                >
+                  <Text style={styles.modalDeleteText}>Delete drink</Text>
+                </Pressable>
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalCancelButton,
+                    pressed && styles.modalButtonPressed,
+                  ]}
+                  onPress={() => setSelectedDrink(null)}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </Pressable>
+              </>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

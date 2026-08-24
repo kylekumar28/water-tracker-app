@@ -153,4 +153,79 @@ export const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
+
+  historyRowPressed: {
+    backgroundColor: Colours.cardPressed,
+  },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+
+  modalCard: {
+    backgroundColor: Colours.card,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 42,
+    alignItems: 'center',
+  },
+
+  modalTitle: {
+    color: Colours.text,
+    fontSize: 24,
+    fontWeight: '700',
+  },
+
+  modalAmount: {
+    color: Colours.blue,
+    fontSize: 42,
+    fontWeight: '800',
+    marginTop: 12,
+  },
+
+  modalTime: {
+    color: Colours.textSecondary,
+    fontSize: 16,
+    marginTop: 4,
+    marginBottom: 28,
+  },
+
+  modalDeleteButton: {
+    width: '100%',
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: '#2A1C1C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  modalDeleteText: {
+    color: '#FF5A5F',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
+  modalCancelButton: {
+    width: '100%',
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: Colours.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+
+  modalCancelText: {
+    color: Colours.text,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
+  modalButtonPressed: {
+    opacity: 0.75,
+  },
 });
