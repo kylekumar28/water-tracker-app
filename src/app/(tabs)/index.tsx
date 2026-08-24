@@ -1,15 +1,12 @@
 import { QuickAddButton } from '@/components/QuickAddButton';
 import { styles } from '@/styles/index.styles';
+import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const DAILY_GOAL = 2700;
-const consumed = 1750;
 
-const percentage = Math.min(Math.round((consumed / DAILY_GOAL) * 100), 100);
-const remaining = Math.max(DAILY_GOAL - consumed, 0);
-
-const drinks = [
+const INITIAL_DRINKS = [
   {
     id: '1',
     time: '18:31',
@@ -37,15 +34,56 @@ const drinks = [
 ];
 
 export default function HomeScreen() {
+  const [consumed, setConsumed] = useState(1750);
+  const [drinks, setDrinks] = useState(INITIAL_DRINKS);
+
+  const percentage = Math.min(Math.round((consumed / DAILY_GOAL) * 100), 100);
+
+  const remaining = Math.max(DAILY_GOAL - consumed, 0);
+
+  const today = new Date();
+
+  const formattedDate = today.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  const hour = new Date().getHours();
+
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  const addWater = (amount: number) => {
+    const now = new Date();
+
+    const time = now.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    const newDrink = {
+      id: Date.now().toString(),
+      time,
+      name: 'Water',
+      amount,
+    };
+
+    setConsumed((current) => current + amount);
+
+    setDrinks((current) => [newDrink, ...current]);
+  };
+
   return (
     <SafeAreaView style={styles.screen} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.greeting}>Good evening</Text>
+        <Text style={styles.greeting}>{greeting}</Text>
 
-        <Text style={styles.sectionLabel}>Monday 24, August</Text>
+        <Text style={styles.sectionLabel}>{formattedDate}</Text>
 
         <View style={styles.progressCard}>
           <Text style={styles.consumed}>{(consumed / 1000).toFixed(2)} L</Text>
@@ -69,8 +107,8 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Quick Add</Text>
 
         <View style={styles.quickAddRow}>
-          <QuickAddButton amount={250} />
-          <QuickAddButton amount={500} />
+          <QuickAddButton amount={250} onPress={() => addWater(250)} />
+          <QuickAddButton amount={500} onPress={() => addWater(500)} />
         </View>
 
         {/* Today's drinks */}

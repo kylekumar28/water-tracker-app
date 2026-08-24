@@ -1,9 +1,15 @@
 import { styles } from '@/styles/index.styles';
 import { Pressable, Text } from 'react-native';
 
-export function QuickAddButton({ amount }: { amount: number }) {
+type QuickAddButtonProps = {
+  amount: number;
+  onPress: () => void;
+};
+
+export function QuickAddButton({ amount, onPress }: QuickAddButtonProps) {
   return (
     <Pressable
+      onPress={onPress}
       style={({ pressed }) => [
         styles.quickAddButton,
         pressed && styles.quickAddButtonPressed,
