@@ -8,8 +8,8 @@ export const styles = StyleSheet.create({
   },
 
   content: {
-    paddingHorizontal: 22,
-    paddingTop: 70,
+    paddingHorizontal: 20,
+    paddingTop: 28,
     paddingBottom: 130,
   },
 
@@ -29,14 +29,15 @@ export const styles = StyleSheet.create({
   progressCard: {
     backgroundColor: Colours.card,
     borderRadius: 28,
-    padding: 28,
+    paddingHorizontal: 26,
+    paddingVertical: 24,
     alignItems: 'center',
-    marginBottom: 34,
+    marginBottom: 30,
   },
 
   consumed: {
     color: Colours.text,
-    fontSize: 48,
+    fontSize: 44,
     fontWeight: '800',
   },
 
@@ -48,9 +49,9 @@ export const styles = StyleSheet.create({
 
   percentage: {
     color: Colours.blue,
-    fontSize: 72,
+    fontSize: 62,
     fontWeight: '800',
-    marginTop: 26,
+    marginTop: 18,
   },
 
   progressTrack: {
@@ -89,7 +90,7 @@ export const styles = StyleSheet.create({
 
   quickAddButton: {
     flex: 1,
-    height: 105,
+    height: 92,
     borderRadius: 22,
     backgroundColor: Colours.card,
     alignItems: 'center',
@@ -108,9 +109,9 @@ export const styles = StyleSheet.create({
 
   quickAddAmount: {
     color: Colours.text,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    marginTop: 2,
+    marginTop: 0,
   },
 
   historyCard: {

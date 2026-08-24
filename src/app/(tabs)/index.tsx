@@ -1,6 +1,7 @@
 import { QuickAddButton } from '@/components/QuickAddButton';
 import { styles } from '@/styles/index.styles';
 import { ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const DAILY_GOAL = 2700;
 const consumed = 1750;
@@ -37,21 +38,21 @@ const drinks = [
 
 export default function HomeScreen() {
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={[]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.greeting}>Good evening</Text>
 
-        <Text style={styles.sectionLabel}>Today's hydration</Text>
+        <Text style={styles.sectionLabel}>Monday 24, August</Text>
 
         <View style={styles.progressCard}>
           <Text style={styles.consumed}>{(consumed / 1000).toFixed(2)} L</Text>
 
-          <Text style={styles.goal}>{(DAILY_GOAL / 1000).toFixed(2)} L</Text>
+          <Text style={styles.goal}>of {(DAILY_GOAL / 1000).toFixed(2)} L</Text>
 
-          <Text style={styles.percentage}>%</Text>
+          <Text style={styles.percentage}>{percentage}%</Text>
 
           <View style={styles.progressTrack}>
             <View style={[styles.progressFill, { width: `${percentage}%` }]} />
@@ -96,6 +97,6 @@ export default function HomeScreen() {
           })}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
