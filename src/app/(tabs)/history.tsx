@@ -1,9 +1,3 @@
-import WeeklyOverview from '@/components/history/WeeklyOverview';
-import { Colours } from '@/constants/colours';
-import { ensureDailySummary, getDailySummary } from '@/services/dailySummary';
-import { getDrinksForDate, getDrinksForRange } from '@/services/drinks';
-import { getDailyGoal } from '@/services/settings';
-import { styles } from '@/styles/history.styles';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,6 +7,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import WeeklyOverview from '@/components/history/WeeklyOverview';
+import { Colours } from '@/constants/colours';
+import { ensureDailySummary, getDailySummary } from '@/services/dailySummary';
+import { getDrinksForDate, getDrinksForRange } from '@/services/drinks';
+import { getDailyGoal } from '@/services/settings';
+import { styles } from '@/styles/history.styles';
 
 type DayStat = {
   date: Date;
@@ -99,15 +100,37 @@ export default function HistoryScreen() {
 
   const weeklyTotal = weekStats.reduce((sum, day) => sum + day.totalMl, 0);
 
-  // biome-ignore lint/correctness/noUnusedVariables: <explanation>
   const weeklyAverage =
     daysWithData.length > 0 ? Math.round(weeklyTotal / daysWithData.length) : 0;
 
-  // biome-ignore lint/correctness/noUnusedVariables: <explanation>
   const goalsReached = weekStats.filter(
     (day) => day.totalMl >= day.goalMl && day.totalMl > 0,
   ).length;
 
+  const currentWeekStreak = useMemo(() => {
+    let streak = 0;
+
+    for (const day of weekStats) {
+      const isFutureDay =
+        day.date.getTime() > new Date().setHours(23, 59, 59, 999);
+
+      if (isFutureDay) {
+        break;
+      }
+
+      const goalReached = day.totalMl > 0 && day.totalMl >= day.goalMl;
+
+      if (goalReached) {
+        streak += 1;
+      } else if (day.totalMl > 0) {
+        streak = 0;
+      }
+    }
+
+    return streak;
+  }, [weekStats]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <i cant fix this>
   useEffect(() => {
     const loadHistory = async () => {
       setIsLoading(true);
@@ -120,9 +143,11 @@ export default function HistoryScreen() {
 
         let summary = await getDailySummary(selectedDate);
 
-        if (!summary) {
+        if (!summary && isToday()) {
           summary = await ensureDailySummary(selectedDate, currentGoal);
         }
+
+        const goalForDay = summary?.goalMl ?? currentGoal;
 
         const formattedDrinks = firebaseDrinks.map((drink) => ({
           id: drink.id,
@@ -137,7 +162,7 @@ export default function HistoryScreen() {
         }));
 
         setDrinks(formattedDrinks);
-        setDailyGoal(summary.goalMl);
+        setDailyGoal(goalForDay);
       } catch (error) {
         console.error('Could not load history:', error);
       } finally {
@@ -241,6 +266,7 @@ export default function HistoryScreen() {
           days={weekStats}
           averageMl={weeklyAverage}
           goalsReached={goalsReached}
+          streak={currentWeekStreak}
         />
 
         {isLoading ? (

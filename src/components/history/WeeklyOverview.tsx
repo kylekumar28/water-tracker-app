@@ -12,12 +12,14 @@ type Props = {
   days: DayStat[];
   averageMl: number;
   goalsReached: number;
+  streak: number;
 };
 
 export default function WeeklyOverview({
   days,
   averageMl,
   goalsReached,
+  streak,
 }: Props) {
   return (
     <View style={styles.card}>
@@ -77,7 +79,7 @@ export default function WeeklyOverview({
       </View>
 
       <View style={styles.statsRow}>
-        <View>
+        <View style={styles.statColumn}>
           <Text style={styles.statLabel}>Average</Text>
 
           <Text style={styles.statValue}>
@@ -85,10 +87,16 @@ export default function WeeklyOverview({
           </Text>
         </View>
 
-        <View style={styles.statRight}>
-          <Text style={styles.statLabel}>Goal reached</Text>
+        <View style={styles.statColumn}>
+          <Text style={styles.statLabel}>Goal hit</Text>
 
           <Text style={styles.statValue}>{goalsReached} days</Text>
+        </View>
+
+        <View style={styles.statColumn}>
+          <Text style={styles.statLabel}>Streak</Text>
+
+          <Text style={styles.statValue}>{streak} days</Text>
         </View>
       </View>
     </View>

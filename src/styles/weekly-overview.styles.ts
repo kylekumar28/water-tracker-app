@@ -59,10 +59,6 @@ export const styles = StyleSheet.create({
     borderTopColor: Colours.border,
   },
 
-  statRight: {
-    alignItems: 'flex-end',
-  },
-
   statLabel: {
     color: Colours.textSecondary,
     fontSize: 13,
@@ -76,11 +72,11 @@ export const styles = StyleSheet.create({
   },
 
   chart: {
-    height: 130,
+    height: 100,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginTop: 22,
-    marginBottom: 8,
+    marginTop: 18,
+    marginBottom: 6,
   },
 
   chartColumn: {
@@ -113,5 +109,10 @@ export const styles = StyleSheet.create({
     height: 2,
     backgroundColor: Colours.textSecondary,
     zIndex: 2,
+  },
+
+  statColumn: {
+    flex: 1,
+    alignItems: 'center',
   },
 });
