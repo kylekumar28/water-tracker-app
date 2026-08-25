@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import HydrationTrendChart from '@/components/stats/HydrationTrendChart';
 import { Colours } from '@/constants/colours';
 import { getDailySummary } from '@/services/dailySummary';
 import { getDrinksForRange } from '@/services/drinks';
 import { getDailyGoal } from '@/services/settings';
 import { styles } from '@/styles/stats.styles';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-type DayStat = {
+export type DayStat = {
   date: Date;
   totalMl: number;
   goalMl: number;
@@ -233,6 +233,8 @@ export default function StatsScreen() {
             <Text style={styles.statUnit}>litres</Text>
           </View>
         </View>
+
+        <HydrationTrendChart days={days} />
       </ScrollView>
     </SafeAreaView>
   );
