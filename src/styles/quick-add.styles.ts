@@ -3,13 +3,6 @@ import { StyleSheet } from 'react-native';
 import { Colours } from '@/constants/colours';
 
 export const styles = StyleSheet.create({
-  sectionTitle: {
-    color: Colours.text,
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-
   quickAddGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -83,6 +76,34 @@ export const styles = StyleSheet.create({
   addDrinkButtonText: {
     color: Colours.text,
     fontSize: 17,
+    fontWeight: '700',
+  },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+
+  sectionTitle: {
+    color: Colours.text,
+    fontSize: 22,
+    fontWeight: '700',
+  },
+
+  editButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+
+  editButtonPressed: {
+    opacity: 0.6,
+  },
+
+  editButtonText: {
+    color: Colours.blue,
+    fontSize: 15,
     fontWeight: '700',
   },
 });

@@ -12,6 +12,7 @@ import QuickAddSection from '@/components/home/QuickAddSection';
 import AddDrinkModal from '@/components/modals/AddDrinkModal';
 import DailyGoalModal from '@/components/modals/DailyGoalModal';
 import DrinkDetailsModal from '@/components/modals/DrinkDetailsModal';
+import ManageQuickAddModal from '@/components/modals/ManageQuickAddModal';
 import { Colours } from '@/constants/colours';
 import {
   getBeverages,
@@ -25,6 +26,7 @@ import {
 } from '@/services/drinks';
 import {
   getQuickAddItems,
+  saveQuickAddItems,
   seedDefaultQuickAdd,
   type QuickAddItem,
 } from '@/services/quickAdd';
@@ -48,6 +50,7 @@ export default function HomeScreen() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmountInput, setCustomAmountInput] = useState('');
   const [quickAddItems, setQuickAddItems] = useState<QuickAddItem[]>([]);
+  const [quickAddModalVisible, setQuickAddModalVisible] = useState(false);
 
   const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
 
@@ -260,6 +263,20 @@ export default function HomeScreen() {
     setAddDrinkModalVisible(false);
   };
 
+  const handleSaveQuickAdd = async (items: QuickAddItem[]) => {
+    try {
+      await saveQuickAddItems(items);
+
+      setQuickAddItems(items);
+
+      setQuickAddModalVisible(false);
+
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      console.error('Could not save Quick Add items:', error);
+    }
+  };
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: <bug>
   useEffect(() => {
     const loadInitialData = async () => {
@@ -324,6 +341,7 @@ export default function HomeScreen() {
           isAddingDrink={isAddingDrink}
           onAddDrink={handleAddDrink}
           onOpenAddDrink={openAddDrinkModal}
+          onEditQuickAdd={() => setQuickAddModalVisible(true)}
         />
 
         {/* Drink history */}
@@ -364,6 +382,14 @@ export default function HomeScreen() {
         onCustomAmountChange={handleCustomAmountChange}
         onConfirm={handleConfirmAddDrink}
         onClose={() => setAddDrinkModalVisible(false)}
+      />
+
+      <ManageQuickAddModal
+        visible={quickAddModalVisible}
+        items={quickAddItems}
+        beverages={beverages}
+        onSave={handleSaveQuickAdd}
+        onClose={() => setQuickAddModalVisible(false)}
       />
     </SafeAreaView>
   );

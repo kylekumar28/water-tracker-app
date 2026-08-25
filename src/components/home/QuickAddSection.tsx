@@ -13,6 +13,7 @@ type Props = {
   isAddingDrink: boolean;
   onAddDrink: (beverage: Beverage, amount: number) => void;
   onOpenAddDrink: () => void;
+  onEditQuickAdd: () => void;
 };
 
 const QuickAddSection = ({
@@ -20,10 +21,23 @@ const QuickAddSection = ({
   isAddingDrink,
   onAddDrink,
   onOpenAddDrink,
+  onEditQuickAdd,
 }: Props) => {
   return (
     <>
-      <Text style={styles.sectionTitle}>Quick Add</Text>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Quick Add</Text>
+
+        <Pressable
+          onPress={onEditQuickAdd}
+          style={({ pressed }) => [
+            styles.editButton,
+            pressed && styles.editButtonPressed,
+          ]}
+        >
+          <Text style={styles.editButtonText}>Edit</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.quickAddGrid}>
         {favourites.map(({ beverage, amount }) => (
