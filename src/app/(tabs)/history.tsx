@@ -46,6 +46,11 @@ const getWeekRange = (date: Date) => {
   };
 };
 
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
 export default function HistoryScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [drinks, setDrinks] = useState<HistoryDrink[]>([]);
@@ -60,6 +65,8 @@ export default function HistoryScreen() {
 
   const percentage =
     dailyGoal > 0 ? Math.min(Math.round((total / dailyGoal) * 100), 100) : 0;
+
+  const progressPercentage = Math.min(percentage, 100);
 
   const remaining = Math.max(dailyGoal - total, 0);
 
@@ -108,23 +115,39 @@ export default function HistoryScreen() {
   ).length;
 
   const currentWeekStreak = useMemo(() => {
+    if (weekStats.length === 0) return 0;
+
+    const today = new Date();
+
+    const relevantDays = weekStats.filter((day) => {
+      const dayDate = new Date(day.date);
+
+      dayDate.setHours(0, 0, 0, 0);
+
+      const todayDate = new Date(today);
+
+      todayDate.setHours(0, 0, 0, 0);
+
+      return dayDate <= todayDate;
+    });
+
     let streak = 0;
 
-    for (const day of weekStats) {
-      const isFutureDay =
-        day.date.getTime() > new Date().setHours(23, 59, 59, 999);
-
-      if (isFutureDay) {
-        break;
-      }
+    for (let i = relevantDays.length - 1; i >= 0; i--) {
+      const day = relevantDays[i];
 
       const goalReached = day.totalMl > 0 && day.totalMl >= day.goalMl;
 
       if (goalReached) {
         streak += 1;
-      } else if (day.totalMl > 0) {
-        streak = 0;
+        continue;
       }
+
+      if (isSameDay(day.date, today)) {
+        continue;
+      }
+
+      break;
     }
 
     return streak;
@@ -295,7 +318,7 @@ export default function HistoryScreen() {
                   style={[
                     styles.progressFill,
                     {
-                      width: `${percentage}%`,
+                      width: `${progressPercentage}%`,
                     },
                   ]}
                 />
