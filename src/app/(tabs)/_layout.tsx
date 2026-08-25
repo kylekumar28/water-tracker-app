@@ -58,6 +58,16 @@ export default function RootLayout() {
             ),
           }}
         />
+
+        <Tabs.Screen
+          name='stats'
+          options={{
+            title: 'Stats',
+            tabBarIcon: ({ color }) => (
+              <IonIcons name='stats-chart' size={23} color={color} />
+            ),
+          }}
+        />
       </Tabs>
     </ThemeProvider>
   );
