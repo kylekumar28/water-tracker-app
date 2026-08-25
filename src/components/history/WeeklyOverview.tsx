@@ -54,6 +54,28 @@ export default function WeeklyOverview({
         })}
       </View>
 
+      <View style={styles.chart}>
+        {days.map((day) => {
+          const maxValue = Math.max(
+            ...days.map((item) => Math.max(item.totalMl, item.goalMl), 1),
+          );
+
+          const barHeight = (day.totalMl / maxValue) * 100;
+          const goalHeight = (day.goalMl / maxValue) * 100;
+
+          return (
+            <View key={day.date.toISOString()} style={styles.chartColumn}>
+              <View style={styles.barTrack}>
+                <View
+                  style={[styles.goalMarker, { bottom: `${goalHeight}%` }]}
+                />
+                <View style={[styles.barFill, { height: `${barHeight}%` }]} />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
       <View style={styles.statsRow}>
         <View>
           <Text style={styles.statLabel}>Average</Text>

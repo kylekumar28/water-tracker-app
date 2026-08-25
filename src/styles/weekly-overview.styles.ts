@@ -74,4 +74,44 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
     marginTop: 4,
   },
+
+  chart: {
+    height: 130,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginTop: 22,
+    marginBottom: 8,
+  },
+
+  chartColumn: {
+    flex: 1,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+
+  barTrack: {
+    width: 18,
+    height: '100%',
+    backgroundColor: Colours.border,
+    borderRadius: 999,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    position: 'relative',
+  },
+
+  barFill: {
+    width: '100%',
+    backgroundColor: Colours.blue,
+    borderRadius: 999,
+  },
+
+  goalMarker: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: Colours.textSecondary,
+    zIndex: 2,
+  },
 });
