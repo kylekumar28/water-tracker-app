@@ -2,21 +2,16 @@
 /** biome-ignore-all assist/source/organizeImports: <bug> */
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Keyboard, ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { QuickAddButton } from '@/components/QuickAddButton';
+import DrinkHistory from '@/components/home/DrinkHistory';
+import HomeHeader from '@/components/home/HomeHeader';
+import HydrationCard from '@/components/home/HydrationCard';
+import QuickAddSection from '@/components/home/QuickAddSection';
+import AddDrinkModal from '@/components/modals/AddDrinkModal';
+import DailyGoalModal from '@/components/modals/DailyGoalModal';
+import DrinkDetailsModal from '@/components/modals/DrinkDetailsModal';
 import { Colours } from '@/constants/colours';
 import {
   type Beverage,
@@ -29,7 +24,7 @@ import {
   removeDrink,
 } from '@/services/drinks';
 import { getDailyGoal, saveDailyGoal } from '@/services/settings';
-import { styles } from '@/styles/index.styles';
+import { styles } from '@/styles/home.styles';
 
 type Drink = {
   id: string;
@@ -273,353 +268,67 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.greeting}>{greeting}</Text>
+        <HomeHeader greeting={greeting} formattedDate={formattedDate} />
 
-        <Text style={styles.sectionLabel}>{formattedDate}</Text>
+        {/* Hydration card */}
+        <HydrationCard
+          consumed={consumed}
+          dailyGoal={dailyGoal}
+          percentage={percentage}
+          remaining={remaining}
+          onEditGoal={() => {
+            setGoalInput(dailyGoal.toString());
+            setGoalModalVisible(true);
+          }}
+        />
 
-        <View style={styles.progressCard}>
-          <Text style={styles.consumed}>{(consumed / 1000).toFixed(2)} L</Text>
+        {/* Quick add section */}
+        <QuickAddSection
+          waterBeverage={waterBeverage}
+          isAddingDrink={isAddingDrink}
+          onAddDrink={handleAddDrink}
+          onOpenAddDrink={openAddDrinkModal}
+        />
 
-          <Pressable
-            onPress={() => {
-              setGoalInput(dailyGoal.toString());
-              setGoalModalVisible(true);
-            }}
-            style={({ pressed }) => [
-              styles.goalButton,
-              pressed && styles.goalButtonPressed,
-            ]}
-          >
-            <Text style={styles.goal}>
-              of {(dailyGoal / 1000).toFixed(2)} L
-            </Text>
-
-            <Text style={styles.goalEdit}>Edit</Text>
-          </Pressable>
-
-          <Text style={styles.percentage}>{percentage}%</Text>
-
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${percentage}%` }]} />
-          </View>
-
-          <Text style={styles.remaining}>
-            {remaining === 0
-              ? 'Daily goal complete'
-              : `${formattedRemaining} ml remaining`}
-          </Text>
-        </View>
-
-        {/* Quick add */}
-        <Text style={styles.sectionTitle}>Quick Add</Text>
-
-        <View style={styles.quickAddRow}>
-          <QuickAddButton
-            amount={250}
-            disabled={isAddingDrink}
-            onPress={() => {
-              if (waterBeverage) handleAddDrink(waterBeverage, 250);
-            }}
-          />
-          <QuickAddButton
-            amount={500}
-            disabled={isAddingDrink}
-            onPress={() => {
-              if (waterBeverage) handleAddDrink(waterBeverage, 500);
-            }}
-          />
-        </View>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.addDrinkButton,
-            pressed && styles.addDrinkButtonPressed,
-          ]}
-          onPress={openAddDrinkModal}
-        >
-          <Text style={styles.addDrinkButtonPlus}>+</Text>
-
-          <Text style={styles.addDrinkButtonText}>Add drink</Text>
-        </Pressable>
-
-        {/* Today's drinks */}
+        {/* Drink history */}
         <Text style={styles.sectionTitle}>Today's drinks</Text>
 
-        {drinks.length === 0 ? (
-          <View style={styles.emptyHistoryCard}>
-            <Text style={styles.emptyHistoryTitle}>No drinks yet</Text>
-
-            <Text style={styles.emptyHistoryText}>
-              Add your first drink of the day.
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.historyCard}>
-            {drinks.map((drink, index) => {
-              const isLast = index === drinks.length - 1;
-
-              return (
-                <Pressable
-                  key={drink.id}
-                  onPress={() => setSelectedDrink(drink)}
-                  style={({ pressed }) => [
-                    styles.historyRow,
-                    !isLast && styles.historyRowBorder,
-                    pressed && styles.historyRowPressed,
-                  ]}
-                >
-                  <Text style={styles.historyTime}>{drink.time}</Text>
-
-                  <View style={styles.historyDrink}>
-                    <Text style={styles.historyName}>{drink.name}</Text>
-                  </View>
-
-                  <Text style={styles.historyAmount}>{drink.amount} ml</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
+        <DrinkHistory drinks={drinks} onSelectDrink={setSelectedDrink} />
       </ScrollView>
 
-      {/* Drink Modal */}
-      <Modal
-        visible={selectedDrink !== null}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setSelectedDrink(null)}
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setSelectedDrink(null)}
-        >
-          <Pressable style={styles.modalCard} onPress={() => {}}>
-            {selectedDrink && (
-              <>
-                <Text style={styles.modalTitle}>{selectedDrink.name}</Text>
-                <Text style={styles.modalAmount}>
-                  {selectedDrink.amount} ml
-                </Text>
-                <Text style={styles.modalTime}>{selectedDrink.time}</Text>
+      {/* Drink details modal */}
+      <DrinkDetailsModal
+        drink={selectedDrink}
+        onClose={() => setSelectedDrink(null)}
+        onDelete={deleteDrink}
+      />
 
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.modalDeleteButton,
-                    pressed && styles.modalButtonPressed,
-                  ]}
-                  onPress={() => deleteDrink(selectedDrink.id)}
-                >
-                  <Text style={styles.modalDeleteText}>Delete drink</Text>
-                </Pressable>
-
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.modalCancelButton,
-                    pressed && styles.modalButtonPressed,
-                  ]}
-                  onPress={() => setSelectedDrink(null)}
-                >
-                  <Text style={styles.modalCancelText}>Cancel</Text>
-                </Pressable>
-              </>
-            )}
-          </Pressable>
-        </Pressable>
-      </Modal>
-
-      {/* Goal modal */}
-      <Modal
+      {/* Daily goal modal */}
+      <DailyGoalModal
         visible={goalModalVisible}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setGoalModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => setGoalModalVisible(false)}
-          >
-            <Pressable style={styles.modalCard} onPress={() => {}}>
-              <Text style={styles.modalTitle}>Daily goal</Text>
-
-              <Text style={styles.goalModalDescription}>
-                How much water do you want to drink each day?
-              </Text>
-
-              <View style={styles.goalInputContainer}>
-                <TextInput
-                  value={goalInput}
-                  onChangeText={setGoalInput}
-                  keyboardType='number-pad'
-                  placeholder='2700'
-                  placeholderTextColor={Colours.textSecondary}
-                  style={styles.goalInput}
-                  selectTextOnFocus
-                />
-
-                <Text style={styles.goalInputUnit}>ml</Text>
-              </View>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.goalSaveButton,
-                  pressed && styles.modalButtonPressed,
-                ]}
-                onPress={() => handleChangeGoal()}
-              >
-                <Text style={styles.goalSaveText}>Save goal</Text>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.modalCancelButton,
-                  pressed && styles.modalButtonPressed,
-                ]}
-                onPress={() => setGoalModalVisible(false)}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </Pressable>
-            </Pressable>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </Modal>
+        goalInput={goalInput}
+        onGoalInputChange={setGoalInput}
+        onSave={handleChangeGoal}
+        onClose={() => setGoalModalVisible(false)}
+      />
 
       {/* Add drink modal */}
-      <Modal
+      <AddDrinkModal
         visible={addDrinkModalVisible}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setAddDrinkModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => {
-              Keyboard.dismiss();
-              setAddDrinkModalVisible(false);
-            }}
-          >
-            <Pressable style={styles.addDrinkModalCard} onPress={() => {}}>
-              <Text style={styles.modalTitle}>Add drink</Text>
-
-              <Text style={styles.addDrinkSectionLabel}>Beverage</Text>
-
-              <View style={styles.beverageOptions}>
-                {beverages.map((beverage) => {
-                  const selected = selectedBeverage?.id === beverage.id;
-
-                  return (
-                    <Pressable
-                      key={beverage.id}
-                      onPress={() => handleSelectBeverage(beverage)}
-                      style={({ pressed }) => [
-                        styles.beverageOption,
-                        selected && styles.beverageOptionSelected,
-                        pressed && styles.modalButtonPressed,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.beverageOptionText,
-                          selected && styles.beverageOptionTextSelected,
-                        ]}
-                      >
-                        {beverage.name}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              {selectedBeverage && (
-                <>
-                  <Text style={styles.addDrinkSectionLabel}>Amount</Text>
-
-                  <View style={styles.amountOptions}>
-                    {selectedBeverage.presetAmountsMl.map((amount) => {
-                      const selected =
-                        selectedAmount === amount && customAmountInput === '';
-
-                      return (
-                        <Pressable
-                          key={amount}
-                          onPress={() => {
-                            setSelectedAmount(amount);
-                            setCustomAmountInput('');
-                          }}
-                          style={({ pressed }) => [
-                            styles.amountOption,
-                            selected && styles.amountOptionSelected,
-                            pressed && styles.modalButtonPressed,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.amountOptionText,
-                              selected && styles.amountOptionTextSelected,
-                            ]}
-                          >
-                            {amount >= 1000
-                              ? `${amount / 1000} L`
-                              : `${amount} ml`}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  <Text style={styles.customAmountLabel}>Custom amount</Text>
-
-                  <View style={styles.goalInputContainer}>
-                    <TextInput
-                      value={customAmountInput}
-                      onChangeText={handleCustomAmountChange}
-                      keyboardType='number-pad'
-                      placeholder='Enter amount'
-                      placeholderTextColor={Colours.textSecondary}
-                      style={styles.goalInput}
-                    />
-
-                    <Text style={styles.goalInputUnit}>ml</Text>
-                  </View>
-                </>
-              )}
-
-              <Pressable
-                disabled={!selectedBeverage || !selectedAmount || isAddingDrink}
-                style={({ pressed }) => [
-                  styles.goalSaveButton,
-                  (!selectedBeverage || !selectedAmount || isAddingDrink) &&
-                    styles.quickAddButtonDisabled,
-                  pressed && styles.modalButtonPressed,
-                ]}
-                onPress={handleConfirmAddDrink}
-              >
-                <Text style={styles.goalSaveText}>Add drink</Text>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.modalCancelButton,
-                  pressed && styles.modalButtonPressed,
-                ]}
-                onPress={() => {
-                  Keyboard.dismiss();
-                  setAddDrinkModalVisible(false);
-                }}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </Pressable>
-            </Pressable>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </Modal>
+        beverages={beverages}
+        selectedBeverage={selectedBeverage}
+        selectedAmount={selectedAmount}
+        customAmount={customAmountInput}
+        isAdding={isAddingDrink}
+        onSelectBeverage={handleSelectBeverage}
+        onSelectAmount={(amount) => {
+          setSelectedAmount(amount);
+          setCustomAmountInput('');
+        }}
+        onCustomAmountChange={handleCustomAmountChange}
+        onConfirm={handleConfirmAddDrink}
+        onClose={() => setAddDrinkModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }

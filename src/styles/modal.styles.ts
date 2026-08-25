@@ -3,69 +3,6 @@ import { StyleSheet } from 'react-native';
 import { Colours } from '@/constants/colours';
 
 export const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Colours.background,
-  },
-
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 40,
-  },
-
-  greeting: {
-    color: Colours.text,
-    fontSize: 34,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-
-  sectionLabel: {
-    color: Colours.textSecondary,
-    fontSize: 17,
-    marginBottom: 28,
-  },
-
-  sectionTitle: {
-    color: Colours.text,
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-
-  quickAddRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-
-  quickAddButton: {
-    flex: 1,
-    height: 92,
-    borderRadius: 22,
-    backgroundColor: Colours.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  quickAddButtonPressed: {
-    backgroundColor: Colours.cardPressed,
-  },
-
-  quickAddPlus: {
-    color: Colours.blue,
-    fontSize: 30,
-    fontWeight: '500',
-  },
-
-  quickAddAmount: {
-    color: Colours.text,
-    fontSize: 17,
-    fontWeight: '700',
-    marginTop: 0,
-  },
-
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -137,6 +74,10 @@ export const styles = StyleSheet.create({
     opacity: 0.75,
   },
 
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+
   goalModalDescription: {
     color: Colours.textSecondary,
     fontSize: 15,
@@ -179,50 +120,6 @@ export const styles = StyleSheet.create({
   },
 
   goalSaveText: {
-    color: Colours.text,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-
-  quickAddButtonDisabled: {
-    opacity: 0.55,
-  },
-
-  loadingScreen: {
-    flex: 1,
-    backgroundColor: Colours.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  loadingText: {
-    color: Colours.textSecondary,
-    fontSize: 15,
-    marginTop: 14,
-  },
-
-  addDrinkButton: {
-    height: 58,
-    borderRadius: 18,
-    backgroundColor: Colours.blue,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 40,
-  },
-
-  addDrinkButtonPressed: {
-    opacity: 0.75,
-  },
-
-  addDrinkButtonPlus: {
-    color: Colours.text,
-    fontSize: 24,
-    fontWeight: '500',
-  },
-
-  addDrinkButtonText: {
     color: Colours.text,
     fontSize: 17,
     fontWeight: '700',
@@ -311,5 +208,9 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 18,
     marginBottom: 8,
+  },
+
+  modalButtonDisabled: {
+    opacity: 0.55,
   },
 });
