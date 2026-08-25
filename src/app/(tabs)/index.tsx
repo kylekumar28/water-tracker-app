@@ -1,6 +1,3 @@
-/** biome-ignore-all lint/correctness/noUnusedImports: <yes bug> */
-/** biome-ignore-all assist/source/organizeImports: <bug> */
-import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Keyboard, ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,53 +11,46 @@ import DailyGoalModal from '@/components/modals/DailyGoalModal';
 import DrinkDetailsModal from '@/components/modals/DrinkDetailsModal';
 import ManageQuickAddModal from '@/components/modals/ManageQuickAddModal';
 import { Colours } from '@/constants/colours';
-import {
-  getBeverages,
-  seedDefaultBeverages,
-  type Beverage,
-} from '@/services/beverages';
-import {
-  addDrink as addDrinkToFirebase,
-  getDrinks,
-  removeDrink,
-} from '@/services/drinks';
-import {
-  getQuickAddItems,
-  saveQuickAddItems,
-  seedDefaultQuickAdd,
-  type QuickAddItem,
-} from '@/services/quickAdd';
-import { getDailyGoal, saveDailyGoal } from '@/services/settings';
+import { useHydrationData } from '@/hooks/useHydrationData';
+import type { Beverage } from '@/services/beverages';
+import type { QuickAddItem } from '@/services/quickAdd';
 import { styles } from '@/styles/home.styles';
 import type { Drink } from '@/types/drinks';
 
 export default function HomeScreen() {
-  const [drinks, setDrinks] = useState<Drink[]>([]);
+  const {
+    drinks,
+    dailyGoal,
+    beverages,
+    quickAddItems,
+
+    consumed,
+    percentage,
+    remaining,
+    quickAddFavourites,
+
+    isLoading,
+    isAddingDrink,
+
+    addDrink,
+    deleteDrink,
+    updateDailyGoal,
+    updateQuickAddItems,
+  } = useHydrationData();
+
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
-  const [dailyGoal, setDailyGoal] = useState(2700);
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [goalInput, setGoalInput] = useState(dailyGoal.toString());
-  const [isAddingDrink, setIsAddingDrink] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [beverages, setBeverages] = useState<Beverage[]>([]);
   const [addDrinkModalVisible, setAddDrinkModalVisible] = useState(false);
   const [selectedBeverage, setSelectedBeverage] = useState<Beverage | null>(
     null,
   );
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmountInput, setCustomAmountInput] = useState('');
-  const [quickAddItems, setQuickAddItems] = useState<QuickAddItem[]>([]);
   const [quickAddModalVisible, setQuickAddModalVisible] = useState(false);
 
-  const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
-
-  const percentage = Math.min(Math.round((consumed / dailyGoal) * 100), 100);
-
-  const remaining = Math.max(dailyGoal - consumed, 0);
-
-  const formattedRemaining = remaining.toLocaleString('en-GB');
-
   const today = new Date();
+  const hour = today.getHours();
 
   const formattedDate = today.toLocaleDateString('en-GB', {
     weekday: 'long',
@@ -68,158 +58,24 @@ export default function HomeScreen() {
     month: 'long',
   });
 
-  const hour = new Date().getHours();
-
   const greeting =
     hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-
-  const quickAddFavourites = quickAddItems
-    .map((item) => {
-      const beverage = beverages.find(
-        (beverage) => beverage.id === item.beverageId,
-      );
-
-      if (!beverage) return null;
-
-      return {
-        beverage,
-        amount: item.amountMl,
-      };
-    })
-    .filter(
-      (
-        item,
-      ): item is {
-        beverage: Beverage;
-        amount: number;
-      } => item !== null,
-    );
-
-  const loadBeverages = async () => {
-    try {
-      await seedDefaultBeverages();
-
-      const loadedBeverages = await getBeverages();
-
-      setBeverages(loadedBeverages);
-    } catch (error) {
-      console.error('Could not load beverages:', error);
-    }
-  };
-
-  const loadDrinks = async () => {
-    try {
-      const firebaseDrinks = await getDrinks();
-
-      const formattedDrinks = firebaseDrinks.map((drink) => ({
-        id: drink.id,
-        name: drink.name,
-        amount: drink.amount,
-        time: drink.createdAt
-          ? drink.createdAt.toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : '--:--',
-      }));
-
-      setDrinks(formattedDrinks);
-    } catch (error) {
-      console.error('Could not load drinks:', error);
-    }
-  };
-
-  const loadDailyGoal = async () => {
-    try {
-      const goal = await getDailyGoal();
-
-      setDailyGoal(goal);
-
-      console.log('Daily goal got:', goal);
-    } catch (error) {
-      console.error('Could not load daily goal:', error);
-    }
-  };
-
-  const loadQuickAddItems = async () => {
-    try {
-      await seedDefaultQuickAdd();
-
-      const loadedItems = await getQuickAddItems();
-
-      setQuickAddItems(loadedItems);
-    } catch (error) {
-      console.error('Could not load Quick Add items:', error);
-    }
-  };
-
-  const handleAddDrink = async (beverage: Beverage, amount: number) => {
-    if (isAddingDrink) return;
-
-    setIsAddingDrink(true);
-
-    try {
-      const id = await addDrinkToFirebase(beverage.id, beverage.name, amount);
-
-      const now = new Date();
-
-      const newDrink: Drink = {
-        id,
-        beverageId: beverage.id,
-        name: beverage.name,
-        amount,
-        time: now.toLocaleTimeString('en-GB', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
-
-      setDrinks((current) => [newDrink, ...current]);
-
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch (error) {
-      console.error('Could not add drink:', error);
-    } finally {
-      setIsAddingDrink(false);
-    }
-  };
-
-  const deleteDrink = async (id: string) => {
-    try {
-      await removeDrink(id);
-
-      setDrinks((current) => current.filter((drink) => drink.id !== id));
-
-      setSelectedDrink(null);
-
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      console.log('Drink successfully deleted:', id);
-    } catch (error) {
-      console.error('Could not delete drink:', error);
-    }
-  };
 
   const handleChangeGoal = async () => {
     const parsedGoal = Number(goalInput);
 
-    if (!Number.isFinite(parsedGoal) || parsedGoal <= 0) return;
+    if (!Number.isFinite(parsedGoal) || parsedGoal <= 0) {
+      return;
+    }
 
     const roundedGoal = Math.round(parsedGoal);
 
     try {
-      await saveDailyGoal(roundedGoal);
+      await updateDailyGoal(roundedGoal);
 
-      setDailyGoal(roundedGoal);
       Keyboard.dismiss();
       setGoalModalVisible(false);
-
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      console.log('Daily goal updated:', roundedGoal);
-    } catch (error) {
-      console.error('Colud not update goal:', error);
-    }
+    } catch {}
   };
 
   const openAddDrinkModal = () => {
@@ -257,7 +113,7 @@ export default function HomeScreen() {
       return;
     }
 
-    await handleAddDrink(selectedBeverage, selectedAmount);
+    await addDrink(selectedBeverage, selectedAmount);
 
     Keyboard.dismiss();
     setAddDrinkModalVisible(false);
@@ -265,35 +121,18 @@ export default function HomeScreen() {
 
   const handleSaveQuickAdd = async (items: QuickAddItem[]) => {
     try {
-      await saveQuickAddItems(items);
-
-      setQuickAddItems(items);
-
+      await updateQuickAddItems(items);
       setQuickAddModalVisible(false);
-
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch (error) {
-      console.error('Could not save Quick Add items:', error);
-    }
+    } catch {}
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <bug>
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        await Promise.all([
-          loadDrinks(),
-          loadDailyGoal(),
-          loadBeverages(),
-          loadQuickAddItems(),
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const handleDeleteDrink = async (id: string) => {
+    try {
+      await deleteDrink(id);
 
-    loadInitialData();
-  }, []);
+      setSelectedDrink(null);
+    } catch {}
+  };
 
   useEffect(() => {
     if (beverages.length > 0 && !selectedBeverage) {
@@ -339,7 +178,7 @@ export default function HomeScreen() {
         <QuickAddSection
           favourites={quickAddFavourites}
           isAddingDrink={isAddingDrink}
-          onAddDrink={handleAddDrink}
+          onAddDrink={addDrink}
           onOpenAddDrink={openAddDrinkModal}
           onEditQuickAdd={() => setQuickAddModalVisible(true)}
         />
@@ -354,7 +193,7 @@ export default function HomeScreen() {
       <DrinkDetailsModal
         drink={selectedDrink}
         onClose={() => setSelectedDrink(null)}
-        onDelete={deleteDrink}
+        onDelete={handleDeleteDrink}
       />
 
       {/* Daily goal modal */}
