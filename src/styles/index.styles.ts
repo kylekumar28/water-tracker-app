@@ -295,4 +295,37 @@ export const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
+
+  quickAddButtonDisabled: {
+    opacity: 0.55,
+  },
+
+  loadingScreen: {
+    flex: 1,
+    backgroundColor: Colours.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  loadingText: {
+    color: Colours.textSecondary,
+    fontSize: 15,
+    marginTop: 14,
+  },
+
+  goalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  goalButtonPressed: {
+    opacity: 0.6,
+  },
+
+  goalEdit: {
+    color: Colours.blue,
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });

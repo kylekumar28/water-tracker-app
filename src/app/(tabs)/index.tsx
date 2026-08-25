@@ -1,5 +1,9 @@
+/** biome-ignore-all lint/correctness/noUnusedImports: <yes bug> */
+/** biome-ignore-all assist/source/organizeImports: <bug> */
+import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -35,12 +39,16 @@ export default function HomeScreen() {
   const [dailyGoal, setDailyGoal] = useState(2700);
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [goalInput, setGoalInput] = useState(dailyGoal.toString());
+  const [isAddingDrink, setIsAddingDrink] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
 
   const percentage = Math.min(Math.round((consumed / dailyGoal) * 100), 100);
 
   const remaining = Math.max(dailyGoal - consumed, 0);
+
+  const formattedRemaining = remaining.toLocaleString('en-GB');
 
   const today = new Date();
 
@@ -90,6 +98,10 @@ export default function HomeScreen() {
   };
 
   const handleAddDrink = async (amount: number) => {
+    if (isAddingDrink) return;
+
+    setIsAddingDrink(true);
+
     try {
       const id = await addDrinkToFirebase(amount);
 
@@ -107,9 +119,13 @@ export default function HomeScreen() {
 
       setDrinks((current) => [newDrink, ...current]);
 
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
       console.log('Drink created', id);
     } catch (error) {
       console.error('Could not add drink:', error);
+    } finally {
+      setIsAddingDrink(false);
     }
   };
 
@@ -120,6 +136,8 @@ export default function HomeScreen() {
       setDrinks((current) => current.filter((drink) => drink.id !== id));
 
       setSelectedDrink(null);
+
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       console.log('Drink successfully deleted:', id);
     } catch (error) {
@@ -141,6 +159,8 @@ export default function HomeScreen() {
       Keyboard.dismiss();
       setGoalModalVisible(false);
 
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
       console.log('Daily goal updated:', roundedGoal);
     } catch (error) {
       console.error('Colud not update goal:', error);
@@ -149,9 +169,32 @@ export default function HomeScreen() {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <bug>
   useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        await Promise.all([loadDrinks(), loadDailyGoal()]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <bug>
+  useEffect(() => {
     loadDrinks();
     loadDailyGoal();
   }, []);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView>
+        <ActivityIndicator size='large' color={Colours.blue} />
+
+        <Text style={styles.loadingText}>Loading today's hydration...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.screen} edges={[]}>
@@ -171,10 +214,16 @@ export default function HomeScreen() {
               setGoalInput(dailyGoal.toString());
               setGoalModalVisible(true);
             }}
+            style={({ pressed }) => [
+              styles.goalButton,
+              pressed && styles.goalButtonPressed,
+            ]}
           >
             <Text style={styles.goal}>
               of {(dailyGoal / 1000).toFixed(2)} L
             </Text>
+
+            <Text style={styles.goalEdit}>Edit</Text>
           </Pressable>
 
           <Text style={styles.percentage}>{percentage}%</Text>
@@ -186,7 +235,7 @@ export default function HomeScreen() {
           <Text style={styles.remaining}>
             {remaining === 0
               ? 'Daily goal complete'
-              : `${remaining} ml remaining`}
+              : `${formattedRemaining} ml remaining`}
           </Text>
         </View>
 
@@ -194,8 +243,16 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Quick Add</Text>
 
         <View style={styles.quickAddRow}>
-          <QuickAddButton amount={250} onPress={() => handleAddDrink(250)} />
-          <QuickAddButton amount={500} onPress={() => handleAddDrink(500)} />
+          <QuickAddButton
+            amount={250}
+            disabled={isAddingDrink}
+            onPress={() => handleAddDrink(250)}
+          />
+          <QuickAddButton
+            amount={500}
+            disabled={isAddingDrink}
+            onPress={() => handleAddDrink(500)}
+          />
         </View>
 
         {/* Today's drinks */}
@@ -218,9 +275,10 @@ export default function HomeScreen() {
                 <Pressable
                   key={drink.id}
                   onPress={() => setSelectedDrink(drink)}
-                  style={[
+                  style={({ pressed }) => [
                     styles.historyRow,
                     !isLast && styles.historyRowBorder,
+                    pressed && styles.historyRowPressed,
                   ]}
                 >
                   <Text style={styles.historyTime}>{drink.time}</Text>

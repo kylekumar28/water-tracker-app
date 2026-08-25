@@ -1,6 +1,6 @@
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 const AppTheme = {
   ...DarkTheme,
@@ -21,7 +21,7 @@ export default function RootLayout() {
         }}
       />
 
-      <StatusBar barStyle={'light-content'} />
+      <StatusBar style='light' />
     </ThemeProvider>
   );
 }
