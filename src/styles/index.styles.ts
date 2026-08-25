@@ -1,5 +1,6 @@
-import { Colours } from '@/constants/colours';
 import { StyleSheet } from 'react-native';
+
+import { Colours } from '@/constants/colours';
 
 export const styles = StyleSheet.create({
   screen: {
@@ -246,5 +247,52 @@ export const styles = StyleSheet.create({
     color: Colours.textSecondary,
     fontSize: 15,
     marginTop: 6,
+  },
+
+  goalModalDescription: {
+    color: Colours.textSecondary,
+    fontSize: 15,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 24,
+  },
+
+  goalInputContainer: {
+    width: '100%',
+    height: 64,
+    borderRadius: 18,
+    backgroundColor: Colours.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 18,
+  },
+
+  goalInput: {
+    flex: 1,
+    color: Colours.text,
+    fontSize: 24,
+    fontWeight: '700',
+  },
+
+  goalInputUnit: {
+    color: Colours.textSecondary,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+
+  goalSaveButton: {
+    width: '100%',
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: Colours.blue,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  goalSaveText: {
+    color: Colours.text,
+    fontSize: 17,
+    fontWeight: '700',
   },
 });

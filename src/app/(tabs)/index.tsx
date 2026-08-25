@@ -1,13 +1,26 @@
+import { useEffect, useState } from 'react';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { QuickAddButton } from '@/components/QuickAddButton';
+import { Colours } from '@/constants/colours';
 import {
   addDrink as addDrinkToFirebase,
   getDrinks,
   removeDrink,
 } from '@/services/drinks';
+import { getDailyGoal, saveDailyGoal } from '@/services/settings';
 import { styles } from '@/styles/index.styles';
-import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Drink = {
   id: string;
@@ -16,17 +29,18 @@ type Drink = {
   amount: number;
 };
 
-const DAILY_GOAL = 2700;
-
 export default function HomeScreen() {
   const [drinks, setDrinks] = useState<Drink[]>([]);
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
+  const [dailyGoal, setDailyGoal] = useState(2700);
+  const [goalModalVisible, setGoalModalVisible] = useState(false);
+  const [goalInput, setGoalInput] = useState(dailyGoal.toString());
 
   const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
 
-  const percentage = Math.min(Math.round((consumed / DAILY_GOAL) * 100), 100);
+  const percentage = Math.min(Math.round((consumed / dailyGoal) * 100), 100);
 
-  const remaining = Math.max(DAILY_GOAL - consumed, 0);
+  const remaining = Math.max(dailyGoal - consumed, 0);
 
   const today = new Date();
 
@@ -60,6 +74,18 @@ export default function HomeScreen() {
       setDrinks(formattedDrinks);
     } catch (error) {
       console.error('Could not load drinks:', error);
+    }
+  };
+
+  const loadDailyGoal = async () => {
+    try {
+      const goal = await getDailyGoal();
+
+      setDailyGoal(goal);
+
+      console.log('Daily goal got:', goal);
+    } catch (error) {
+      console.error('Could not load daily goal:', error);
     }
   };
 
@@ -101,8 +127,30 @@ export default function HomeScreen() {
     }
   };
 
+  const handleChangeGoal = async () => {
+    const parsedGoal = Number(goalInput);
+
+    if (!Number.isFinite(parsedGoal) || parsedGoal <= 0) return;
+
+    const roundedGoal = Math.round(parsedGoal);
+
+    try {
+      await saveDailyGoal(roundedGoal);
+
+      setDailyGoal(roundedGoal);
+      Keyboard.dismiss();
+      setGoalModalVisible(false);
+
+      console.log('Daily goal updated:', roundedGoal);
+    } catch (error) {
+      console.error('Colud not update goal:', error);
+    }
+  };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <bug>
   useEffect(() => {
     loadDrinks();
+    loadDailyGoal();
   }, []);
 
   return (
@@ -118,7 +166,16 @@ export default function HomeScreen() {
         <View style={styles.progressCard}>
           <Text style={styles.consumed}>{(consumed / 1000).toFixed(2)} L</Text>
 
-          <Text style={styles.goal}>of {(DAILY_GOAL / 1000).toFixed(2)} L</Text>
+          <Pressable
+            onPress={() => {
+              setGoalInput(dailyGoal.toString());
+              setGoalModalVisible(true);
+            }}
+          >
+            <Text style={styles.goal}>
+              of {(dailyGoal / 1000).toFixed(2)} L
+            </Text>
+          </Pressable>
 
           <Text style={styles.percentage}>{percentage}%</Text>
 
@@ -180,7 +237,7 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      {/* Modal */}
+      {/* Drink Modal */}
       <Modal
         visible={selectedDrink !== null}
         transparent
@@ -223,6 +280,66 @@ export default function HomeScreen() {
             )}
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* Goal modal */}
+      <Modal
+        visible={goalModalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setGoalModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => setGoalModalVisible(false)}
+          >
+            <Pressable style={styles.modalCard} onPress={() => {}}>
+              <Text style={styles.modalTitle}>Daily goal</Text>
+
+              <Text style={styles.goalModalDescription}>
+                How much water do you want to drink each day?
+              </Text>
+
+              <View style={styles.goalInputContainer}>
+                <TextInput
+                  value={goalInput}
+                  onChangeText={setGoalInput}
+                  keyboardType='number-pad'
+                  placeholder='2700'
+                  placeholderTextColor={Colours.textSecondary}
+                  style={styles.goalInput}
+                  selectTextOnFocus
+                />
+
+                <Text style={styles.goalInputUnit}>ml</Text>
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.goalSaveButton,
+                  pressed && styles.modalButtonPressed,
+                ]}
+                onPress={() => handleChangeGoal()}
+              >
+                <Text style={styles.goalSaveText}>Save goal</Text>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalCancelButton,
+                  pressed && styles.modalButtonPressed,
+                ]}
+                onPress={() => setGoalModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
