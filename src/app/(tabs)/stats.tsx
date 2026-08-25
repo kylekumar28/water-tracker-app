@@ -1,12 +1,14 @@
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import ConsistencyGrid from '@/components/stats/ConsistencyGrid';
 import HydrationTrendChart from '@/components/stats/HydrationTrendChart';
 import { Colours } from '@/constants/colours';
 import { getDailySummary } from '@/services/dailySummary';
 import { getDrinksForRange } from '@/services/drinks';
 import { getDailyGoal } from '@/services/settings';
 import { styles } from '@/styles/stats.styles';
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type DayStat = {
   date: Date;
@@ -235,6 +237,8 @@ export default function StatsScreen() {
         </View>
 
         <HydrationTrendChart days={days} />
+
+        <ConsistencyGrid days={days} />
       </ScrollView>
     </SafeAreaView>
   );
