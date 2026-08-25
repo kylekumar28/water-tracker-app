@@ -10,10 +10,53 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  quickAddRow: {
+  quickAddGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     marginBottom: 12,
+  },
+
+  quickAddFavourite: {
+    width: '48%',
+    minHeight: 100,
+    borderRadius: 22,
+    backgroundColor: Colours.card,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+
+  quickAddFavouritePressed: {
+    backgroundColor: Colours.cardPressed,
+  },
+
+  quickAddFavouriteDisabled: {
+    opacity: 0.55,
+  },
+
+  quickAddBeverage: {
+    color: Colours.text,
+    fontSize: 16,
+    fontWeight: '700',
+    paddingRight: 24,
+  },
+
+  quickAddAmount: {
+    color: Colours.blue,
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 6,
+  },
+
+  quickAddPlus: {
+    position: 'absolute',
+    top: 12,
+    right: 16,
+    color: Colours.blue,
+    fontSize: 24,
+    fontWeight: '500',
   },
 
   addDrinkButton: {

@@ -14,25 +14,23 @@ import DailyGoalModal from '@/components/modals/DailyGoalModal';
 import DrinkDetailsModal from '@/components/modals/DrinkDetailsModal';
 import { Colours } from '@/constants/colours';
 import {
-  type Beverage,
   getBeverages,
   seedDefaultBeverages,
+  type Beverage,
 } from '@/services/beverages';
 import {
   addDrink as addDrinkToFirebase,
   getDrinks,
   removeDrink,
 } from '@/services/drinks';
+import {
+  getQuickAddItems,
+  seedDefaultQuickAdd,
+  type QuickAddItem,
+} from '@/services/quickAdd';
 import { getDailyGoal, saveDailyGoal } from '@/services/settings';
 import { styles } from '@/styles/home.styles';
-
-type Drink = {
-  id: string;
-  beverageId?: string;
-  time: string;
-  name: string;
-  amount: number;
-};
+import type { Drink } from '@/types/drinks';
 
 export default function HomeScreen() {
   const [drinks, setDrinks] = useState<Drink[]>([]);
@@ -49,6 +47,7 @@ export default function HomeScreen() {
   );
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmountInput, setCustomAmountInput] = useState('');
+  const [quickAddItems, setQuickAddItems] = useState<QuickAddItem[]>([]);
 
   const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
 
@@ -71,7 +70,27 @@ export default function HomeScreen() {
   const greeting =
     hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
-  const waterBeverage = beverages.find((beverage) => beverage.id === 'water');
+  const quickAddFavourites = quickAddItems
+    .map((item) => {
+      const beverage = beverages.find(
+        (beverage) => beverage.id === item.beverageId,
+      );
+
+      if (!beverage) return null;
+
+      return {
+        beverage,
+        amount: item.amountMl,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        beverage: Beverage;
+        amount: number;
+      } => item !== null,
+    );
 
   const loadBeverages = async () => {
     try {
@@ -116,6 +135,18 @@ export default function HomeScreen() {
       console.log('Daily goal got:', goal);
     } catch (error) {
       console.error('Could not load daily goal:', error);
+    }
+  };
+
+  const loadQuickAddItems = async () => {
+    try {
+      await seedDefaultQuickAdd();
+
+      const loadedItems = await getQuickAddItems();
+
+      setQuickAddItems(loadedItems);
+    } catch (error) {
+      console.error('Could not load Quick Add items:', error);
     }
   };
 
@@ -233,7 +264,12 @@ export default function HomeScreen() {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        await Promise.all([loadDrinks(), loadDailyGoal(), loadBeverages()]);
+        await Promise.all([
+          loadDrinks(),
+          loadDailyGoal(),
+          loadBeverages(),
+          loadQuickAddItems(),
+        ]);
       } finally {
         setIsLoading(false);
       }
@@ -284,7 +320,7 @@ export default function HomeScreen() {
 
         {/* Quick add section */}
         <QuickAddSection
-          waterBeverage={waterBeverage}
+          favourites={quickAddFavourites}
           isAddingDrink={isAddingDrink}
           onAddDrink={handleAddDrink}
           onOpenAddDrink={openAddDrinkModal}

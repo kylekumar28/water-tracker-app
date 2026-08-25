@@ -2,17 +2,21 @@ import { Pressable, Text, View } from 'react-native';
 
 import type { Beverage } from '@/services/beverages';
 import { styles } from '@/styles/quick-add.styles';
-import { QuickAddButton } from '../QuickAddButton';
+
+type QuickAddFavourite = {
+  beverage: Beverage;
+  amount: number;
+};
 
 type Props = {
-  waterBeverage?: Beverage;
+  favourites: QuickAddFavourite[];
   isAddingDrink: boolean;
   onAddDrink: (beverage: Beverage, amount: number) => void;
   onOpenAddDrink: () => void;
 };
 
 const QuickAddSection = ({
-  waterBeverage,
+  favourites,
   isAddingDrink,
   onAddDrink,
   onOpenAddDrink,
@@ -21,26 +25,27 @@ const QuickAddSection = ({
     <>
       <Text style={styles.sectionTitle}>Quick Add</Text>
 
-      <View style={styles.quickAddRow}>
-        <QuickAddButton
-          amount={250}
-          disabled={!waterBeverage || isAddingDrink}
-          onPress={() => {
-            if (waterBeverage) {
-              onAddDrink(waterBeverage, 250);
-            }
-          }}
-        />
+      <View style={styles.quickAddGrid}>
+        {favourites.map(({ beverage, amount }) => (
+          <Pressable
+            key={`${beverage.id}-${amount}`}
+            disabled={isAddingDrink}
+            onPress={() => onAddDrink(beverage, amount)}
+            style={({ pressed }) => [
+              styles.quickAddFavourite,
+              pressed && styles.quickAddFavouritePressed,
+              isAddingDrink && styles.quickAddFavouriteDisabled,
+            ]}
+          >
+            <Text style={styles.quickAddBeverage}>{beverage.name}</Text>
 
-        <QuickAddButton
-          amount={500}
-          disabled={!waterBeverage || isAddingDrink}
-          onPress={() => {
-            if (waterBeverage) {
-              onAddDrink(waterBeverage, 500);
-            }
-          }}
-        />
+            <Text style={styles.quickAddAmount}>
+              {amount >= 1000 ? `${amount / 1000} L` : `${amount} ml`}
+            </Text>
+
+            <Text style={styles.quickAddPlus}>+</Text>
+          </Pressable>
+        ))}
       </View>
 
       <Pressable
