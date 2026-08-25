@@ -86,7 +86,7 @@ export const styles = StyleSheet.create({
   quickAddRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 40,
+    marginBottom: 12,
   },
 
   quickAddButton: {
@@ -327,5 +327,117 @@ export const styles = StyleSheet.create({
     color: Colours.blue,
     fontSize: 13,
     fontWeight: '600',
+  },
+
+  addDrinkButton: {
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: Colours.blue,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 40,
+  },
+
+  addDrinkButtonPressed: {
+    opacity: 0.75,
+  },
+
+  addDrinkButtonPlus: {
+    color: Colours.text,
+    fontSize: 24,
+    fontWeight: '500',
+  },
+
+  addDrinkButtonText: {
+    color: Colours.text,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
+  addDrinkModalCard: {
+    backgroundColor: Colours.card,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 42,
+  },
+
+  addDrinkSectionLabel: {
+    color: Colours.text,
+    fontSize: 17,
+    fontWeight: '700',
+    marginTop: 26,
+    marginBottom: 12,
+  },
+
+  beverageOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+
+  beverageOption: {
+    paddingHorizontal: 16,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: Colours.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  beverageOptionSelected: {
+    borderWidth: 2,
+    borderColor: Colours.blue,
+  },
+
+  beverageOptionText: {
+    color: Colours.textSecondary,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
+  beverageOptionTextSelected: {
+    color: Colours.blue,
+  },
+
+  amountOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+
+  amountOption: {
+    minWidth: 90,
+    height: 52,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: Colours.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  amountOptionSelected: {
+    borderWidth: 2,
+    borderColor: Colours.blue,
+  },
+
+  amountOptionText: {
+    color: Colours.text,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  amountOptionTextSelected: {
+    color: Colours.blue,
+  },
+
+  customAmountLabel: {
+    color: Colours.textSecondary,
+    fontSize: 14,
+    marginTop: 18,
+    marginBottom: 8,
   },
 });

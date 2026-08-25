@@ -1,4 +1,3 @@
-import { db } from '@/config/firebase';
 import {
   addDoc,
   collection,
@@ -11,6 +10,8 @@ import {
   where,
 } from 'firebase/firestore';
 
+import { db } from '@/config/firebase';
+
 const USER_ID = 'kyle';
 
 export type Drink = {
@@ -20,12 +21,16 @@ export type Drink = {
   createdAt?: Date;
 };
 
-export async function addDrink(amount: number) {
+export async function addDrink(
+  beverageId: string,
+  name: string,
+  amount: number,
+) {
   const drinksRef = collection(db, 'users', USER_ID, 'drinks');
 
   const docRef = await addDoc(drinksRef, {
-    type: 'water',
-    name: 'Water',
+    beverageId,
+    name,
     amountMl: amount,
     createdAt: serverTimestamp(),
   });

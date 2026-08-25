@@ -19,6 +19,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { QuickAddButton } from '@/components/QuickAddButton';
 import { Colours } from '@/constants/colours';
 import {
+  type Beverage,
+  getBeverages,
+  seedDefaultBeverages,
+} from '@/services/beverages';
+import {
   addDrink as addDrinkToFirebase,
   getDrinks,
   removeDrink,
@@ -28,6 +33,7 @@ import { styles } from '@/styles/index.styles';
 
 type Drink = {
   id: string;
+  beverageId?: string;
   time: string;
   name: string;
   amount: number;
@@ -41,6 +47,13 @@ export default function HomeScreen() {
   const [goalInput, setGoalInput] = useState(dailyGoal.toString());
   const [isAddingDrink, setIsAddingDrink] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [beverages, setBeverages] = useState<Beverage[]>([]);
+  const [addDrinkModalVisible, setAddDrinkModalVisible] = useState(false);
+  const [selectedBeverage, setSelectedBeverage] = useState<Beverage | null>(
+    null,
+  );
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customAmountInput, setCustomAmountInput] = useState('');
 
   const consumed = drinks.reduce((total, drink) => total + drink.amount, 0);
 
@@ -62,6 +75,20 @@ export default function HomeScreen() {
 
   const greeting =
     hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  const waterBeverage = beverages.find((beverage) => beverage.id === 'water');
+
+  const loadBeverages = async () => {
+    try {
+      await seedDefaultBeverages();
+
+      const loadedBeverages = await getBeverages();
+
+      setBeverages(loadedBeverages);
+    } catch (error) {
+      console.error('Could not load beverages:', error);
+    }
+  };
 
   const loadDrinks = async () => {
     try {
@@ -97,19 +124,20 @@ export default function HomeScreen() {
     }
   };
 
-  const handleAddDrink = async (amount: number) => {
+  const handleAddDrink = async (beverage: Beverage, amount: number) => {
     if (isAddingDrink) return;
 
     setIsAddingDrink(true);
 
     try {
-      const id = await addDrinkToFirebase(amount);
+      const id = await addDrinkToFirebase(beverage.id, beverage.name, amount);
 
       const now = new Date();
 
       const newDrink: Drink = {
         id,
-        name: 'Water',
+        beverageId: beverage.id,
+        name: beverage.name,
         amount,
         time: now.toLocaleTimeString('en-GB', {
           hour: '2-digit',
@@ -120,8 +148,6 @@ export default function HomeScreen() {
       setDrinks((current) => [newDrink, ...current]);
 
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-      console.log('Drink created', id);
     } catch (error) {
       console.error('Could not add drink:', error);
     } finally {
@@ -167,11 +193,52 @@ export default function HomeScreen() {
     }
   };
 
+  const openAddDrinkModal = () => {
+    const water =
+      beverages.find((beverage) => beverage.id === 'water') ?? beverages[0];
+
+    if (!water) return;
+
+    setSelectedBeverage(water);
+    setSelectedAmount(water.defaultAmountMl);
+    setCustomAmountInput('');
+    setAddDrinkModalVisible(true);
+  };
+
+  const handleSelectBeverage = (beverage: Beverage) => {
+    setSelectedBeverage(beverage);
+    setSelectedAmount(beverage.defaultAmountMl);
+    setCustomAmountInput('');
+  };
+
+  const handleCustomAmountChange = (value: string) => {
+    setCustomAmountInput(value);
+
+    const parsed = Number(value);
+
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setSelectedAmount(Math.round(parsed));
+    } else {
+      setSelectedAmount(null);
+    }
+  };
+
+  const handleConfirmAddDrink = async () => {
+    if (!selectedBeverage || !selectedAmount) {
+      return;
+    }
+
+    await handleAddDrink(selectedBeverage, selectedAmount);
+
+    Keyboard.dismiss();
+    setAddDrinkModalVisible(false);
+  };
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: <bug>
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        await Promise.all([loadDrinks(), loadDailyGoal()]);
+        await Promise.all([loadDrinks(), loadDailyGoal(), loadBeverages()]);
       } finally {
         setIsLoading(false);
       }
@@ -180,15 +247,19 @@ export default function HomeScreen() {
     loadInitialData();
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <bug>
   useEffect(() => {
-    loadDrinks();
-    loadDailyGoal();
-  }, []);
+    if (beverages.length > 0 && !selectedBeverage) {
+      const water =
+        beverages.find((beverage) => beverage.id === 'water') ?? beverages[0];
+
+      setSelectedBeverage(water);
+      setSelectedAmount(water.defaultAmountMl);
+    }
+  }, [beverages, selectedBeverage]);
 
   if (isLoading) {
     return (
-      <SafeAreaView>
+      <SafeAreaView style={styles.loadingScreen} edges={[]}>
         <ActivityIndicator size='large' color={Colours.blue} />
 
         <Text style={styles.loadingText}>Loading today's hydration...</Text>
@@ -246,14 +317,30 @@ export default function HomeScreen() {
           <QuickAddButton
             amount={250}
             disabled={isAddingDrink}
-            onPress={() => handleAddDrink(250)}
+            onPress={() => {
+              if (waterBeverage) handleAddDrink(waterBeverage, 250);
+            }}
           />
           <QuickAddButton
             amount={500}
             disabled={isAddingDrink}
-            onPress={() => handleAddDrink(500)}
+            onPress={() => {
+              if (waterBeverage) handleAddDrink(waterBeverage, 500);
+            }}
           />
         </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.addDrinkButton,
+            pressed && styles.addDrinkButtonPressed,
+          ]}
+          onPress={openAddDrinkModal}
+        >
+          <Text style={styles.addDrinkButtonPlus}>+</Text>
+
+          <Text style={styles.addDrinkButtonText}>Add drink</Text>
+        </Pressable>
 
         {/* Today's drinks */}
         <Text style={styles.sectionTitle}>Today's drinks</Text>
@@ -392,6 +479,140 @@ export default function HomeScreen() {
                   pressed && styles.modalButtonPressed,
                 ]}
                 onPress={() => setGoalModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Add drink modal */}
+      <Modal
+        visible={addDrinkModalVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setAddDrinkModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => {
+              Keyboard.dismiss();
+              setAddDrinkModalVisible(false);
+            }}
+          >
+            <Pressable style={styles.addDrinkModalCard} onPress={() => {}}>
+              <Text style={styles.modalTitle}>Add drink</Text>
+
+              <Text style={styles.addDrinkSectionLabel}>Beverage</Text>
+
+              <View style={styles.beverageOptions}>
+                {beverages.map((beverage) => {
+                  const selected = selectedBeverage?.id === beverage.id;
+
+                  return (
+                    <Pressable
+                      key={beverage.id}
+                      onPress={() => handleSelectBeverage(beverage)}
+                      style={({ pressed }) => [
+                        styles.beverageOption,
+                        selected && styles.beverageOptionSelected,
+                        pressed && styles.modalButtonPressed,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.beverageOptionText,
+                          selected && styles.beverageOptionTextSelected,
+                        ]}
+                      >
+                        {beverage.name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {selectedBeverage && (
+                <>
+                  <Text style={styles.addDrinkSectionLabel}>Amount</Text>
+
+                  <View style={styles.amountOptions}>
+                    {selectedBeverage.presetAmountsMl.map((amount) => {
+                      const selected =
+                        selectedAmount === amount && customAmountInput === '';
+
+                      return (
+                        <Pressable
+                          key={amount}
+                          onPress={() => {
+                            setSelectedAmount(amount);
+                            setCustomAmountInput('');
+                          }}
+                          style={({ pressed }) => [
+                            styles.amountOption,
+                            selected && styles.amountOptionSelected,
+                            pressed && styles.modalButtonPressed,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.amountOptionText,
+                              selected && styles.amountOptionTextSelected,
+                            ]}
+                          >
+                            {amount >= 1000
+                              ? `${amount / 1000} L`
+                              : `${amount} ml`}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <Text style={styles.customAmountLabel}>Custom amount</Text>
+
+                  <View style={styles.goalInputContainer}>
+                    <TextInput
+                      value={customAmountInput}
+                      onChangeText={handleCustomAmountChange}
+                      keyboardType='number-pad'
+                      placeholder='Enter amount'
+                      placeholderTextColor={Colours.textSecondary}
+                      style={styles.goalInput}
+                    />
+
+                    <Text style={styles.goalInputUnit}>ml</Text>
+                  </View>
+                </>
+              )}
+
+              <Pressable
+                disabled={!selectedBeverage || !selectedAmount || isAddingDrink}
+                style={({ pressed }) => [
+                  styles.goalSaveButton,
+                  (!selectedBeverage || !selectedAmount || isAddingDrink) &&
+                    styles.quickAddButtonDisabled,
+                  pressed && styles.modalButtonPressed,
+                ]}
+                onPress={handleConfirmAddDrink}
+              >
+                <Text style={styles.goalSaveText}>Add drink</Text>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalCancelButton,
+                  pressed && styles.modalButtonPressed,
+                ]}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setAddDrinkModalVisible(false);
+                }}
               >
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </Pressable>
