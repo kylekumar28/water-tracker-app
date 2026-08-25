@@ -26,6 +26,7 @@ type Props = {
   onCustomAmountChange: (value: string) => void;
   onConfirm: () => void;
   onClose: () => void;
+  onManageBeverages: () => void;
 };
 
 const AddDrinkModal = ({
@@ -40,6 +41,7 @@ const AddDrinkModal = ({
   onCustomAmountChange,
   onConfirm,
   onClose,
+  onManageBeverages,
 }: Props) => {
   const handleClose = () => {
     Keyboard.dismiss();
@@ -89,6 +91,16 @@ const AddDrinkModal = ({
                 );
               })}
             </View>
+
+            <Pressable
+              onPress={onManageBeverages}
+              style={({ pressed }) => [
+                styles.manageBeveragesButton,
+                pressed && styles.modalButtonPressed,
+              ]}
+            >
+              <Text style={styles.manageBeveragesText}>Manage beverages</Text>
+            </Pressable>
 
             {selectedBeverage && (
               <>

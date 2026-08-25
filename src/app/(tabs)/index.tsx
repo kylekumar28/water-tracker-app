@@ -9,6 +9,7 @@ import QuickAddSection from '@/components/home/QuickAddSection';
 import AddDrinkModal from '@/components/modals/AddDrinkModal';
 import DailyGoalModal from '@/components/modals/DailyGoalModal';
 import DrinkDetailsModal from '@/components/modals/DrinkDetailsModal';
+import ManageBeveragesModal from '@/components/modals/ManageBeveragesModal';
 import ManageQuickAddModal from '@/components/modals/ManageQuickAddModal';
 import { Colours } from '@/constants/colours';
 import { useHydrationData } from '@/hooks/useHydrationData';
@@ -36,6 +37,9 @@ export default function HomeScreen() {
     deleteDrink,
     updateDailyGoal,
     updateQuickAddItems,
+
+    updateBeverage,
+    addBeverage,
   } = useHydrationData();
 
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
@@ -48,6 +52,7 @@ export default function HomeScreen() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmountInput, setCustomAmountInput] = useState('');
   const [quickAddModalVisible, setQuickAddModalVisible] = useState(false);
+  const [manageBeverageVisible, setManageBeverageVisible] = useState(false);
 
   const today = new Date();
   const hour = today.getHours();
@@ -221,6 +226,10 @@ export default function HomeScreen() {
         onCustomAmountChange={handleCustomAmountChange}
         onConfirm={handleConfirmAddDrink}
         onClose={() => setAddDrinkModalVisible(false)}
+        onManageBeverages={() => {
+          setAddDrinkModalVisible(false);
+          setManageBeverageVisible(true);
+        }}
       />
 
       <ManageQuickAddModal
@@ -229,6 +238,14 @@ export default function HomeScreen() {
         beverages={beverages}
         onSave={handleSaveQuickAdd}
         onClose={() => setQuickAddModalVisible(false)}
+      />
+
+      <ManageBeveragesModal
+        visible={manageBeverageVisible}
+        beverages={beverages}
+        onSave={updateBeverage}
+        onAdd={addBeverage}
+        onClose={() => setManageBeverageVisible(false)}
       />
     </SafeAreaView>
   );

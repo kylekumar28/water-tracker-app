@@ -76,3 +76,31 @@ export async function getBeverages(): Promise<Beverage[]> {
     })
     .filter((beverage) => beverage.enabled);
 }
+
+export async function saveBeverage(beverage: Beverage) {
+  const beverageRef = doc(db, 'users', USER_ID, 'beverages', beverage.id);
+
+  await setDoc(
+    beverageRef,
+    {
+      name: beverage.name,
+      defaultAmountMl: beverage.defaultAmountMl,
+      presetAmountsMl: beverage.presetAmountsMl,
+      enabled: beverage.enabled,
+    },
+    {
+      merge: true,
+    },
+  );
+}
+
+export async function createBeverage(beverage: Beverage) {
+  const beverageRef = doc(db, 'users', USER_ID, 'beverages', beverage.id);
+
+  await setDoc(beverageRef, {
+    name: beverage.name,
+    defaultAmountMl: beverage.defaultAmountMl,
+    presetAmountsMl: beverage.presetAmountsMl,
+    enabled: beverage.enabled,
+  });
+}

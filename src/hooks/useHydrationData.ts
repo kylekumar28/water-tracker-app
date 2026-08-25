@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   type Beverage,
+  createBeverage,
   getBeverages,
+  saveBeverage,
   seedDefaultBeverages,
 } from '@/services/beverages';
 
@@ -189,6 +191,36 @@ export function useHydrationData() {
     }
   }, []);
 
+  const updateBeverage = useCallback(async (beverage: Beverage) => {
+    try {
+      await saveBeverage(beverage);
+
+      setBeverages((current) =>
+        current.map((item) => (item.id === beverage.id ? beverage : item)),
+      );
+
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      console.error('Could not update beverage:', error);
+
+      throw error;
+    }
+  }, []);
+
+  const addBeverage = useCallback(async (beverage: Beverage) => {
+    try {
+      await createBeverage(beverage);
+
+      setBeverages((current) => [...current, beverage]);
+
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      console.error('Could not create beverage:', error);
+
+      throw error;
+    }
+  }, []);
+
   const consumed = useMemo(
     () => drinks.reduce((total, drink) => total + drink.amount, 0),
     [drinks],
@@ -238,5 +270,8 @@ export function useHydrationData() {
     deleteDrink,
     updateDailyGoal,
     updateQuickAddItems,
+
+    updateBeverage,
+    addBeverage,
   };
 }

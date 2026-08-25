@@ -213,4 +213,16 @@ export const styles = StyleSheet.create({
   modalButtonDisabled: {
     opacity: 0.55,
   },
+
+  manageBeveragesButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+
+  manageBeveragesText: {
+    color: Colours.blue,
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
