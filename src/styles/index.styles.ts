@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 28,
-    paddingBottom: 130,
+    paddingBottom: 40,
   },
 
   greeting: {
@@ -86,7 +86,7 @@ export const styles = StyleSheet.create({
   quickAddRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 34,
+    marginBottom: 40,
   },
 
   quickAddButton: {
@@ -316,7 +316,7 @@ export const styles = StyleSheet.create({
   goalButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 10,
   },
 
   goalButtonPressed: {
