@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colours } from '@/constants/colours';
+import { ensureDailySummary, getDailySummary } from '@/services/dailySummary';
 import { getDrinksForDate } from '@/services/drinks';
 import { getDailyGoal } from '@/services/settings';
 import { styles } from '@/styles/history.styles';
@@ -74,10 +75,15 @@ export default function HistoryScreen() {
       setIsLoading(true);
 
       try {
-        const [firebaseDrinks, goal] = await Promise.all([
-          getDrinksForDate(selectedDate),
-          getDailyGoal(),
-        ]);
+        const currentGoal = await getDailyGoal();
+
+        let summary = await getDailySummary(selectedDate);
+
+        if (!summary) {
+          summary = await ensureDailySummary(selectedDate, currentGoal);
+        }
+
+        const firebaseDrinks = await getDrinksForDate(selectedDate);
 
         const formattedDrinks = firebaseDrinks.map((drink) => ({
           id: drink.id,
@@ -92,7 +98,7 @@ export default function HistoryScreen() {
         }));
 
         setDrinks(formattedDrinks);
-        setDailyGoal(goal);
+        setDailyGoal(summary.goalMl);
       } catch (error) {
         console.error('Could not load history:', error);
       } finally {

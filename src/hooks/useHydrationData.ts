@@ -8,22 +8,22 @@ import {
   saveBeverage,
   seedDefaultBeverages,
 } from '@/services/beverages';
-
+import {
+  ensureDailySummary,
+  updateDailySummaryGoal,
+} from '@/services/dailySummary';
 import {
   addDrink as addDrinkToFirebase,
   getDrinks,
   removeDrink,
 } from '@/services/drinks';
-
 import {
   getQuickAddItems,
   type QuickAddItem,
   saveQuickAddItems,
   seedDefaultQuickAdd,
 } from '@/services/quickAdd';
-
 import { getDailyGoal, saveDailyGoal } from '@/services/settings';
-
 import type { Drink } from '@/types/drinks';
 
 export type QuickAddFavourite = {
@@ -67,6 +67,8 @@ export function useHydrationData() {
       const goal = await getDailyGoal();
 
       setDailyGoal(goal);
+
+      await ensureDailySummary(new Date(), goal);
     } catch (error) {
       console.error('Could not load daily goal:', error);
     }
@@ -166,6 +168,8 @@ export function useHydrationData() {
   const updateDailyGoal = useCallback(async (goal: number) => {
     try {
       await saveDailyGoal(goal);
+
+      await updateDailySummaryGoal(new Date(), goal);
 
       setDailyGoal(goal);
 
