@@ -38,19 +38,16 @@ export async function addDrink(
   return docRef.id;
 }
 
-export async function getDrinks() {
+async function getDrinksBetween(
+  startDate: Date,
+  endDate: Date,
+): Promise<Drink[]> {
   const drinksRef = collection(db, 'users', USER_ID, 'drinks');
-
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-
-  const startOfTomorrow = new Date(startOfToday);
-  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
   const drinksQuery = query(
     drinksRef,
-    where('createdAt', '>=', startOfToday),
-    where('createdAt', '<', startOfTomorrow),
+    where('createdAt', '>=', startDate),
+    where('createdAt', '<', endDate),
     orderBy('createdAt', 'desc'),
   );
 
@@ -66,6 +63,34 @@ export async function getDrinks() {
       createdAt: data.createdAt?.toDate?.(),
     };
   });
+}
+
+export async function getDrinks() {
+  const startOfToday = new Date();
+
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfTomorrow = new Date(startOfToday);
+
+  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+  return getDrinksBetween(startOfToday, startOfTomorrow);
+}
+
+export async function getDrinksForDate(date: Date) {
+  const startOfDay = new Date(date);
+
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const startOfNextDay = new Date(startOfDay);
+
+  startOfNextDay.setDate(startOfNextDay.getDate() + 1);
+
+  return getDrinksBetween(startOfDay, startOfNextDay);
+}
+
+export async function getDrinksForRange(startDate: Date, endDate: Date) {
+  return getDrinksBetween(startDate, endDate);
 }
 
 export async function removeDrink(id: string) {
