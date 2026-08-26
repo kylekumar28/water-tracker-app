@@ -10,6 +10,7 @@ export type Beverage = {
   defaultAmountMl: number;
   presetAmountsMl: number[];
   enabled: boolean;
+  caffeineMgPer100Ml?: number;
 };
 
 const DEFAULT_BEVERAGES: Beverage[] = [
@@ -31,6 +32,7 @@ const DEFAULT_BEVERAGES: Beverage[] = [
     id: 'coffee',
     name: 'Coffee',
     defaultAmountMl: 250,
+    caffeineMgPer100Ml: 40,
     presetAmountsMl: [250],
     enabled: true,
   },
@@ -72,6 +74,7 @@ export async function getBeverages(): Promise<Beverage[]> {
         defaultAmountMl: data.defaultAmountMl,
         presetAmountsMl: data.presetAmountsMl ?? [],
         enabled: data.enabled ?? true,
+        caffeineMgPer100Ml: data.caffeineMgPer100Ml,
       } satisfies Beverage;
     })
     .filter((beverage) => beverage.enabled);
@@ -87,6 +90,7 @@ export async function saveBeverage(beverage: Beverage) {
       defaultAmountMl: beverage.defaultAmountMl,
       presetAmountsMl: beverage.presetAmountsMl,
       enabled: beverage.enabled,
+      caffeineMgPer100Ml: beverage.caffeineMgPer100Ml ?? 0,
     },
     {
       merge: true,
@@ -102,5 +106,6 @@ export async function createBeverage(beverage: Beverage) {
     defaultAmountMl: beverage.defaultAmountMl,
     presetAmountsMl: beverage.presetAmountsMl,
     enabled: beverage.enabled,
+    caffeineMgPer100Ml: beverage.caffeineMgPer100Ml ?? 0,
   });
 }

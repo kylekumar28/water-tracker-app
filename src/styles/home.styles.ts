@@ -46,4 +46,27 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     marginTop: 14,
   },
+
+  caffeineCard: {
+    backgroundColor: Colours.card,
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  caffeineLabel: {
+    color: Colours.textSecondary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  caffeineValue: {
+    color: Colours.coffee,
+    fontSize: 20,
+    fontWeight: '700',
+  },
 });

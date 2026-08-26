@@ -53,7 +53,12 @@ const QuickAddSection = ({
           >
             <Text style={styles.quickAddBeverage}>{beverage.name}</Text>
 
-            <Text style={styles.quickAddAmount}>
+            <Text
+              style={[
+                styles.quickAddAmount,
+                beverage.id === 'coffee' && styles.coffeeAccent,
+              ]}
+            >
               {amount >= 1000 ? `${amount / 1000} L` : `${amount} ml`}
             </Text>
 

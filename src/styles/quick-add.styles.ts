@@ -106,4 +106,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  coffeeAccent: {
+    color: Colours.coffee,
+  },
 });

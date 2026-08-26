@@ -41,7 +41,14 @@ const DrinkHistory = ({ drinks, onSelectDrink }: Props) => {
               <Text style={styles.historyName}>{drink.name}</Text>
             </View>
 
-            <Text style={styles.historyAmount}>{drink.amount} ml</Text>
+            <Text
+              style={[
+                styles.historyAmount,
+                drink.beverageId === 'coffee' && styles.coffeeAmount,
+              ]}
+            >
+              {drink.amount} ml
+            </Text>
           </Pressable>
         );
       })}

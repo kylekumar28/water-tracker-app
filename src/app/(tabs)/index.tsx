@@ -1,3 +1,4 @@
+/** biome-ignore-all assist/source/organizeImports: <biome being annoying> */
 import DrinkHistory from '@/components/home/DrinkHistory';
 import HomeHeader from '@/components/home/HomeHeader';
 import HydrationCard from '@/components/home/HydrationCard';
@@ -15,7 +16,13 @@ import { styles } from '@/styles/home.styles';
 import type { Drink } from '@/types/drinks';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Keyboard, ScrollView, Text } from 'react-native';
+import {
+  ActivityIndicator,
+  Keyboard,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -26,6 +33,7 @@ export default function HomeScreen() {
     quickAddItems,
 
     consumed,
+    caffeineMg,
     percentage,
     remaining,
     quickAddFavourites,
@@ -186,6 +194,12 @@ export default function HomeScreen() {
             setGoalModalVisible(true);
           }}
         />
+
+        <View style={styles.caffeineCard}>
+          <Text style={styles.caffeineLabel}>☕ Caffeine today</Text>
+
+          <Text style={styles.caffeineValue}>{Math.round(caffeineMg)} mg</Text>
+        </View>
 
         {/* Quick add section */}
         <QuickAddSection

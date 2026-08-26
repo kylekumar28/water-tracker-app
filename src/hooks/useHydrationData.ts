@@ -46,6 +46,7 @@ export function useHydrationData() {
 
       const formattedDrinks: Drink[] = firebaseDrinks.map((drink) => ({
         id: drink.id,
+        beverageId: drink.beverageId,
         name: drink.name,
         amount: drink.amount,
         time: drink.createdAt
@@ -234,6 +235,22 @@ export function useHydrationData() {
     [drinks],
   );
 
+  const caffeineMg = useMemo(() => {
+    return drinks.reduce((total, drink) => {
+      if (!drink.beverageId) {
+        return total;
+      }
+
+      const beverage = beverages.find((item) => item.id === drink.beverageId);
+
+      if (!beverage?.caffeineMgPer100Ml) {
+        return total;
+      }
+
+      return total + (drink.amount / 100) * beverage.caffeineMgPer100Ml;
+    }, 0);
+  }, [drinks, beverages]);
+
   const percentage =
     dailyGoal > 0 ? Math.min(Math.round((consumed / dailyGoal) * 100), 100) : 0;
 
@@ -267,6 +284,7 @@ export function useHydrationData() {
     quickAddItems,
 
     consumed,
+    caffeineMg,
     percentage,
     remaining,
     quickAddFavourites,

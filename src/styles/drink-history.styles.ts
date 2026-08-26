@@ -64,4 +64,7 @@ export const styles = StyleSheet.create({
   historyRowPressed: {
     backgroundColor: Colours.cardPressed,
   },
+  coffeeAmount: {
+    color: Colours.coffee,
+  },
 });

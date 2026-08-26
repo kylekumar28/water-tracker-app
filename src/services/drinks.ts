@@ -17,6 +17,7 @@ const USER_ID = 'kyle';
 export type Drink = {
   id: string;
   name: string;
+  beverageId: string;
   amount: number;
   createdAt?: Date;
 };
@@ -58,6 +59,7 @@ async function getDrinksBetween(
 
     return {
       id: document.id,
+      beverageId: data.beverageId,
       name: data.name,
       amount: data.amountMl,
       createdAt: data.createdAt?.toDate?.(),
