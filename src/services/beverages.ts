@@ -55,6 +55,7 @@ export async function seedDefaultBeverages() {
       defaultAmountMl: beverage.defaultAmountMl,
       presetAmountsMl: beverage.presetAmountsMl,
       enabled: beverage.enabled,
+      caffeineMgPer100Ml: beverage.caffeineMgPer100Ml ?? 0,
     });
   }
 }

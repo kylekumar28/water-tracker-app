@@ -113,11 +113,11 @@ export default function ManageBeveragesModal({
         ? makeId(name)
         : // biome-ignore lint/style/noNonNullAssertion: <allw it>
           editing!.id,
-
       name: name.trim(),
       defaultAmountMl: Math.round(parsedDefault),
       presetAmountsMl: presets,
       enabled,
+      caffeineMgPer100Ml: editing?.caffeineMgPer100Ml,
     };
 
     if (isNew) {
