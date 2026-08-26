@@ -1,7 +1,3 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Keyboard, ScrollView, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
 import DrinkHistory from '@/components/home/DrinkHistory';
 import HomeHeader from '@/components/home/HomeHeader';
 import HydrationCard from '@/components/home/HydrationCard';
@@ -17,6 +13,10 @@ import type { Beverage } from '@/services/beverages';
 import type { QuickAddItem } from '@/services/quickAdd';
 import { styles } from '@/styles/home.styles';
 import type { Drink } from '@/types/drinks';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Keyboard, ScrollView, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const {
@@ -40,6 +40,8 @@ export default function HomeScreen() {
 
     updateBeverage,
     addBeverage,
+
+    refreshCurrentDay,
   } = useHydrationData();
 
   const [selectedDrink, setSelectedDrink] = useState<Drink | null>(null);
@@ -148,6 +150,12 @@ export default function HomeScreen() {
       setSelectedAmount(water.defaultAmountMl);
     }
   }, [beverages, selectedBeverage]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshCurrentDay();
+    }, [refreshCurrentDay]),
+  );
 
   if (isLoading) {
     return (

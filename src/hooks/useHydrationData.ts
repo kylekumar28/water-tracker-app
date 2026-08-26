@@ -74,6 +74,10 @@ export function useHydrationData() {
     }
   }, []);
 
+  const refreshCurrentDay = useCallback(async () => {
+    await Promise.all([loadDrinks(), loadDailyGoal()]);
+  }, [loadDrinks, loadDailyGoal]);
+
   const loadBeverages = useCallback(async () => {
     try {
       await seedDefaultBeverages();
@@ -277,5 +281,7 @@ export function useHydrationData() {
 
     updateBeverage,
     addBeverage,
+
+    refreshCurrentDay,
   };
 }

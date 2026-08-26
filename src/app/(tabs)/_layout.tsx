@@ -50,6 +50,16 @@ export default function RootLayout() {
         />
 
         <Tabs.Screen
+          name='weight'
+          options={{
+            title: 'Weight',
+            tabBarIcon: ({ color }) => (
+              <IonIcons name='scale-outline' size={23} color={color} />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
           name='history'
           options={{
             title: 'History',
