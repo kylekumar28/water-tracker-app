@@ -12,7 +12,9 @@
       "bundleIdentifier": "com.kaps.watertracker",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "backgroundColor": "#000000",
+      "userInterfaceStyle": "automatic"
     },
     "android": {
       "adaptiveIcon": {

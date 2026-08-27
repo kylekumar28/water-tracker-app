@@ -1,6 +1,7 @@
 import IonIcons from '@expo/vector-icons/Ionicons';
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme } from '@react-navigation/native';
 import { Tabs } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 const AppTheme = {
   ...DarkTheme,
@@ -13,7 +14,10 @@ const AppTheme = {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider value={AppTheme}>
+    <>
+      {/* <ThemeProvider value={AppTheme}> */}
+      <StatusBar style='light' />
+
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -79,6 +83,7 @@ export default function RootLayout() {
           }}
         />
       </Tabs>
-    </ThemeProvider>
+      {/* </ThemeProvider> */}
+    </>
   );
 }
