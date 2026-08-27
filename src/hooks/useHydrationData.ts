@@ -17,7 +17,12 @@ import {
   addDrink as addDrinkToFirebase,
   getDrinks,
   removeDrink,
+  saveHealthKitSampleIds,
 } from '@/services/drinks';
+import {
+  deleteDrinkFromHealthKit,
+  saveDrinkToHealthKit,
+} from '@/services/healthKit';
 import {
   getQuickAddItems,
   type QuickAddItem,
@@ -62,6 +67,8 @@ export function useHydrationData() {
         beverageId: drink.beverageId,
         name: drink.name,
         amount: drink.amount,
+        healthKitWaterSampleId: drink.healthKitWaterSampleId,
+        healthKitCaffeineSampleId: drink.healthKitCaffeineSampleId,
         time: drink.createdAt
           ? drink.createdAt.toLocaleTimeString('en-GB', {
               hour: '2-digit',
@@ -200,6 +207,36 @@ export function useHydrationData() {
       try {
         const id = await addDrinkToFirebase(beverage.id, beverage.name, amount);
 
+        let healthKitWaterSampleId: string | undefined;
+
+        let healthKitCaffeineSampleId: string | undefined;
+
+        try {
+          const caffeineMg = beverage.caffeineMgPer100Ml
+            ? (amount / 100) * beverage.caffeineMgPer100Ml
+            : 0;
+
+          const healthKitSamples = await saveDrinkToHealthKit(
+            amount,
+            caffeineMg,
+          );
+
+          healthKitWaterSampleId = healthKitSamples.waterSampleId;
+
+          healthKitCaffeineSampleId = healthKitSamples.caffeineSampleId;
+
+          await saveHealthKitSampleIds(
+            id,
+            healthKitWaterSampleId,
+            healthKitCaffeineSampleId,
+          );
+        } catch (healthKitError) {
+          console.error(
+            'Could not sync drink to apple health:',
+            healthKitError,
+          );
+        }
+
         const now = new Date();
 
         const newDrink: Drink = {
@@ -207,6 +244,8 @@ export function useHydrationData() {
           beverageId: beverage.id,
           name: beverage.name,
           amount,
+          healthKitWaterSampleId,
+          healthKitCaffeineSampleId,
           time: now.toLocaleTimeString('en-GB', {
             hour: '2-digit',
             minute: '2-digit',
@@ -225,19 +264,33 @@ export function useHydrationData() {
     [isAddingDrink],
   );
 
-  const deleteDrink = useCallback(async (id: string) => {
-    try {
-      await removeDrink(id);
+  const deleteDrink = useCallback(
+    async (id: string) => {
+      try {
+        const drink = drinks.find((item) => item.id === id);
 
-      setDrinks((current) => current.filter((drink) => drink.id !== id));
+        if (drink) {
+          await deleteDrinkFromHealthKit(
+            drink.healthKitWaterSampleId,
+            drink.healthKitCaffeineSampleId,
+          );
+        }
 
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      console.error('Could not delete drink:', error);
+        await removeDrink(id);
 
-      throw error;
-    }
-  }, []);
+        setDrinks((current) => current.filter((drink) => drink.id !== id));
+
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
+      } catch (error) {
+        console.error('Could not delete drink:', error);
+
+        throw error;
+      }
+    },
+    [drinks],
+  );
 
   const updateDailyGoal = useCallback(async (goal: number) => {
     try {

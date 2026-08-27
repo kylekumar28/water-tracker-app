@@ -4,4 +4,6 @@ export type Drink = {
   time: string;
   name: string;
   amount: number;
+  healthKitWaterSampleId?: string;
+  healthKitCaffeineSampleId?: string;
 };

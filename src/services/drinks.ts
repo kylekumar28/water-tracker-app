@@ -7,6 +7,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 
@@ -20,6 +21,8 @@ export type Drink = {
   beverageId: string;
   amount: number;
   createdAt?: Date;
+  healthKitWaterSampleId?: string;
+  healthKitCaffeineSampleId?: string;
 };
 
 export async function addDrink(
@@ -37,6 +40,24 @@ export async function addDrink(
   });
 
   return docRef.id;
+}
+
+export async function saveHealthKitSampleIds(
+  id: string,
+  waterSampleId?: string,
+  caffeineSampleId?: string,
+) {
+  const drinkRef = doc(db, 'users', USER_ID, 'drinks', id);
+
+  await updateDoc(drinkRef, {
+    ...(waterSampleId && {
+      healthKitWaterSampleId: waterSampleId,
+    }),
+
+    ...(caffeineSampleId && {
+      healthKitCaffeineSampleId: caffeineSampleId,
+    }),
+  });
 }
 
 async function getDrinksBetween(
@@ -63,6 +84,8 @@ async function getDrinksBetween(
       name: data.name,
       amount: data.amountMl,
       createdAt: data.createdAt?.toDate?.(),
+      healthKitWaterSampleId: data.healthKitWaterSampleId,
+      healthKitCaffeineSampleId: data.healthKitCaffeineSampleId,
     };
   });
 }
