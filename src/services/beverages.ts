@@ -65,20 +65,18 @@ export async function getBeverages(): Promise<Beverage[]> {
 
   const snapshot = await getDocs(beveragesRef);
 
-  return snapshot.docs
-    .map((document) => {
-      const data = document.data();
+  return snapshot.docs.map((document) => {
+    const data = document.data();
 
-      return {
-        id: document.id,
-        name: data.name,
-        defaultAmountMl: data.defaultAmountMl,
-        presetAmountsMl: data.presetAmountsMl ?? [],
-        enabled: data.enabled ?? true,
-        caffeineMgPer100Ml: data.caffeineMgPer100Ml,
-      } satisfies Beverage;
-    })
-    .filter((beverage) => beverage.enabled);
+    return {
+      id: document.id,
+      name: data.name,
+      defaultAmountMl: data.defaultAmountMl,
+      presetAmountsMl: data.presetAmountsMl ?? [],
+      enabled: data.enabled ?? true,
+      caffeineMgPer100Ml: data.caffeineMgPer100Ml,
+    } satisfies Beverage;
+  });
 }
 
 export async function saveBeverage(beverage: Beverage) {

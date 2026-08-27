@@ -256,11 +256,16 @@ export function useHydrationData() {
 
   const remaining = Math.max(dailyGoal - consumed, 0);
 
+  const enabledBeverages = useMemo(
+    () => beverages.filter((beverage) => beverage.enabled),
+    [beverages],
+  );
+
   const quickAddFavourites = useMemo(
     () =>
       quickAddItems
         .map((item) => {
-          const beverage = beverages.find(
+          const beverage = enabledBeverages.find(
             (beverage) => beverage.id === item.beverageId,
           );
 
@@ -274,13 +279,14 @@ export function useHydrationData() {
           };
         })
         .filter((item): item is QuickAddFavourite => item !== null),
-    [quickAddItems, beverages],
+    [quickAddItems, enabledBeverages],
   );
 
   return {
     drinks,
     dailyGoal,
     beverages,
+    enabledBeverages,
     quickAddItems,
 
     consumed,

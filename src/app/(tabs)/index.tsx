@@ -30,6 +30,7 @@ export default function HomeScreen() {
     drinks,
     dailyGoal,
     beverages,
+    enabledBeverages,
     quickAddItems,
 
     consumed,
@@ -95,7 +96,8 @@ export default function HomeScreen() {
 
   const openAddDrinkModal = () => {
     const water =
-      beverages.find((beverage) => beverage.id === 'water') ?? beverages[0];
+      enabledBeverages.find((beverage) => beverage.id === 'water') ??
+      enabledBeverages[0];
 
     if (!water) return;
 
@@ -150,14 +152,25 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    if (beverages.length > 0 && !selectedBeverage) {
+    if (enabledBeverages.length === 0) {
+      setSelectedBeverage(null);
+      setSelectedAmount(null);
+      return;
+    }
+
+    const selectedStillEnahbled =
+      selectedBeverage &&
+      enabledBeverages.some((beverage) => beverage.id === selectedBeverage.id);
+
+    if (!selectedStillEnahbled) {
       const water =
-        beverages.find((beverage) => beverage.id === 'water') ?? beverages[0];
+        enabledBeverages.find((beverage) => beverage.id === 'water') ??
+        enabledBeverages[0];
 
       setSelectedBeverage(water);
       setSelectedAmount(water.defaultAmountMl);
     }
-  }, [beverages, selectedBeverage]);
+  }, [enabledBeverages, selectedBeverage]);
 
   useFocusEffect(
     useCallback(() => {
@@ -235,7 +248,7 @@ export default function HomeScreen() {
       {/* Add drink modal */}
       <AddDrinkModal
         visible={addDrinkModalVisible}
-        beverages={beverages}
+        beverages={enabledBeverages}
         selectedBeverage={selectedBeverage}
         selectedAmount={selectedAmount}
         customAmount={customAmountInput}
