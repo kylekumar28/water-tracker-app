@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 import {
   type Beverage,
@@ -31,6 +32,16 @@ export type QuickAddFavourite = {
   amount: number;
 };
 
+function getDateKey(date = new Date()) {
+  const year = date.getFullYear();
+
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 export function useHydrationData() {
   const [drinks, setDrinks] = useState<Drink[]>([]);
   const [dailyGoal, setDailyGoal] = useState(2700);
@@ -39,6 +50,8 @@ export function useHydrationData() {
 
   const [isAddingDrink, setIsAddingDrink] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const currentDateKeyRef = useRef(getDateKey());
 
   const loadDrinks = useCallback(async () => {
     try {
@@ -60,6 +73,8 @@ export function useHydrationData() {
       setDrinks(formattedDrinks);
     } catch (error) {
       console.error('Could not load drinks:', error);
+
+      throw error;
     }
   }, []);
 
@@ -72,11 +87,15 @@ export function useHydrationData() {
       await ensureDailySummary(new Date(), goal);
     } catch (error) {
       console.error('Could not load daily goal:', error);
+
+      throw error;
     }
   }, []);
 
   const refreshCurrentDay = useCallback(async () => {
     await Promise.all([loadDrinks(), loadDailyGoal()]);
+
+    currentDateKeyRef.current = getDateKey();
   }, [loadDrinks, loadDailyGoal]);
 
   const loadBeverages = useCallback(async () => {
@@ -119,6 +138,56 @@ export function useHydrationData() {
 
     loadInitialData();
   }, [loadDrinks, loadDailyGoal, loadBeverages, loadQuickAddItems]);
+
+  useEffect(() => {
+    let midnightTimer: ReturnType<typeof setTimeout>;
+    let cancelled = false;
+
+    const scheduleMidnightRefresh = () => {
+      if (cancelled) return;
+
+      const now = new Date();
+      const nextMidnight = new Date(now);
+
+      nextMidnight.setHours(24, 0, 1, 0);
+
+      const delay = nextMidnight.getTime() - now.getTime();
+
+      midnightTimer = setTimeout(async () => {
+        await refreshCurrentDay();
+
+        if (!cancelled) scheduleMidnightRefresh();
+      }, delay);
+    };
+
+    scheduleMidnightRefresh();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(midnightTimer);
+    };
+  }, [refreshCurrentDay]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      async (nextAppState) => {
+        if (nextAppState !== 'active') {
+          return;
+        }
+
+        const newDateKey = getDateKey();
+
+        if (newDateKey !== currentDateKeyRef.current) {
+          await refreshCurrentDay();
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [refreshCurrentDay]);
 
   const addDrink = useCallback(
     async (beverage: Beverage, amount: number) => {
