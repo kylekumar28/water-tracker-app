@@ -1,16 +1,6 @@
 import IonIcons from '@expo/vector-icons/Ionicons';
-import { DarkTheme } from '@react-navigation/native';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-
-const AppTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: '#000000',
-    card: '#000000',
-  },
-};
 
 export default function RootLayout() {
   return (
