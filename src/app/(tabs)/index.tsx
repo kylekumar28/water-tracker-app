@@ -11,6 +11,10 @@ import ManageQuickAddModal from '@/components/modals/ManageQuickAddModal';
 import { Colours } from '@/constants/colours';
 import { useHydrationData } from '@/hooks/useHydrationData';
 import type { Beverage } from '@/services/beverages';
+import {
+  requestHealthKitPermissions,
+  saveWaterToHealthKit,
+} from '@/services/healthKit';
 import type { QuickAddItem } from '@/services/quickAdd';
 import { styles } from '@/styles/home.styles';
 import type { Drink } from '@/types/drinks';
@@ -19,6 +23,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -151,6 +156,18 @@ export default function HomeScreen() {
     } catch {}
   };
 
+  const testHealthKit = async () => {
+    try {
+      await requestHealthKitPermissions();
+
+      await saveWaterToHealthKit(500);
+
+      console.log('HealthKit test successful: 500 ml saved');
+    } catch (error) {
+      console.error('HealthKit test failed:', error);
+    }
+  };
+
   useEffect(() => {
     if (enabledBeverages.length === 0) {
       setSelectedBeverage(null);
@@ -212,6 +229,29 @@ export default function HomeScreen() {
           <Text style={styles.caffeineLabel}>☕ Caffeine today</Text>
 
           <Text style={styles.caffeineValue}>{Math.round(caffeineMg)} mg</Text>
+        </View>
+
+        {/*Testing healthkit */}
+        <View style={{ marginTop: 20 }}>
+          <Pressable
+            onPress={testHealthKit}
+            style={{
+              backgroundColor: '#3670F7',
+              padding: 16,
+              borderRadius: 16,
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={{
+                color: '#FFFFFF',
+                fontSize: 16,
+                fontWeight: '700',
+              }}
+            >
+              Test Apple Health
+            </Text>
+          </Pressable>
         </View>
 
         {/* Quick add section */}
